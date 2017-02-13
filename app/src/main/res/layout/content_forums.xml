@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <ListView
+        android:id="@+id/forum_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottomlayout"
+        android:layout_marginBottom="4dp"
+        android:layout_marginTop="60dp"
+        android:clipToPadding="false"
+        android:divider="@drawable/chat_divider"
+        android:paddingBottom="4dp"
+        android:paddingTop="8dp"
+        android:scrollbarStyle="outsideOverlay"
+        android:stackFromBottom="false"
+        android:transcriptMode="normal" />
+
+    <LinearLayout
+        android:id="@+id/bottomlayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            android:background="@drawable/input"
+            android:minHeight="50dp"
+            android:orientation="horizontal"
+            android:paddingBottom="15dp">
+
+            <ImageButton
+                android:id="@+id/forum_photoPickerButton"
+                android:layout_width="36dp"
+                android:layout_height="24dp"
+                android:layout_gravity="bottom|left"
+                android:background="@android:drawable/ic_menu_gallery"
+                android:padding="2dp" />
+
+            <ImageView
+                android:id="@+id/forum_emojiButton"
+                android:layout_width="36dp"
+                android:layout_height="24dp"
+                android:layout_gravity="bottom"
+                android:padding="2dp"
+                android:src="@drawable/input_emoji" />
+
+            <github.ankushsachdeva.emojicon.EmojiconEditText
+                android:id="@+id/emojicon_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_weight="0.95"
+                android:background="@null"
+                android:hint="@string/type_your_message"
+                android:inputType="textMultiLine"
+                android:textColorHint="#c4c0bd"
+                android:textSize="18sp"
+
+                emojicon:emojiconSize="28sp" />
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/enter_forum"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/ic_brightness_1_black_24dp"
+            android:src="@drawable/input_send" />
+
+    </LinearLayout>
+
+
+    <ProgressBar
+        android:id="@+id/forum_progressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
+
+</RelativeLayout>

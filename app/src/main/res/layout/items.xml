@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginStart="@dimen/activity_horizontal_margin"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_margin="5dp"
+        android:background="@drawable/bg_items"
+        android:orientation="vertical"
+        app:cardBackgroundColor="?attr/colorButtonNormal">
+
+
+        <RelativeLayout
+            android:id="@+id/user_details"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/user_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="5dp">
+
+                <TextView
+                    android:id="@+id/itemName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textSize="18sp"
+                    tools:text="User name is polycarp okock aka aspo" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/date_joined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/user_name">
+
+                <TextView
+                    android:id="@+id/date_user_joined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="5dp"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textSize="14sp"
+                    tools:text="Jan 2017 11:15am" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/date_joined">
+
+                <TextView
+                    android:id="@+id/user_uid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="invisible" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleType="fitXY"
+                    app:srcCompat="@drawable/ic_more_vert_black_24dp" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+
+</LinearLayout>

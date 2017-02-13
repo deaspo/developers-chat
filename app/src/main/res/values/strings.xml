@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Developers Chat</string>
+    <string name="type_your_message">Type a message</string>
+    <string name="NoRecent">No recent</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_chit_chat">Chat</string>
+
+    <!-- Menu Strings -->
+    <string name="action_logout">Logout</string>
+    <string name="action_share_list">Share List</string>
+    <string name="action_remove_list">Remove Group</string>
+    <string name="action_remove_topic">Remove Topic</string>
+    <string name="action_archive">Archive</string>
+
+    <!-- Menu Items -->
+    <string name="action_edit_list_name">Edit list name</string>
+
+
+    <!-- Edit and Add Group Dialogs -->
+    <string name="positive_button_add_group">Add new group</string>
+    <string name="positive_button_edit_group">Edit group name</string>
+    <string name="action_sort_groups">Sort</string>
+    <string name="negative_button_cancel">Cancel</string>
+    <string name="dialog_message_are_you_sure_remove_group">Are you sure you want to remove this group?</string>
+
+
+    <!-- Edit and Add Topic Dialogs -->
+    <string name="positive_button_add_topic">Add new topic</string>
+    <string name="positive_button_edit_topic">Edit topic name</string>
+    <string name="action_sort_topics">Sort</string>
+    <string name="negative_button_cancel_edit">Cancel</string>
+    <string name="dialog_message_are_you_sure_remove_topic">Are you sure you want to remove this topic?</string>
+
+    <string name="created_by">Created by </string>
+
+
+    <string name="remove_item_option">Remove Item</string>
+    <string name="positive_button_create">Create</string>
+
+
+    <string name="person_shopping">%d person shopping</string>
+    <string name="people_shopping">%d people shopping</string>
+
+    <string name="log_error_the_read_failed">The read failed: </string>
+
+
+    <!-- Navigation drawer -->
+    <string name="navigation_drawer_open">Open navigation</string>
+    <string name="navigation_drawer_close">Close navigation</string>
+    <string name="openDrawer">open_drawer</string>
+    <string name="closeDrawer">close_drawer</string>
+
+
+    <string name="nav_chats">Chats</string>
+    <string name="nav_groups">Groups</string>
+    <string name="nav_topics">Topics</string>
+    <string name="nav_users">Active Users</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_about_us">About Us</string>
+
+    <!-- Toolbar titles when navigation menu is selected -->
+    <string-array name="nav_item_activity_titles">
+        <item>Chats</item>
+        <item>Groups</item>
+        <item>Topics</item>
+        <item>Activie Users</item>
+        <item>Settings</item>
+    </string-array>
+
+    <string name="activity_title_about_us">About US</string>
+    <string name="action_clear_all">Clear All</string>
+
+</resources>
