@@ -1,0 +1,29 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.MainActivity">
+
+    <item
+        android:id="@+id/app_bar_search_topic"
+        android:icon="@drawable/ic_find_in_page_black_24dp"
+        android:orderInCategory="100"
+        android:title="Search"
+        android:visible="false"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="collapseActionView|ifRoom" />
+    <item
+        android:id="@+id/action_sort_topic"
+        android:icon="@drawable/ic_sort_white"
+        android:orderInCategory="100"
+        android:title="@string/action_sort_topics"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_logout"
+        android:orderInCategory="100"
+        android:title="@string/action_logout"
+        android:visible="true"
+        app:showAsAction="never" />
+</menu>
+
