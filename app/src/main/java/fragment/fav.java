@@ -110,13 +110,19 @@ public class fav extends Fragment {
                 public void onCancelled(DatabaseError databaseError) {
                 }
             };
-            chatsUsersDb.addChildEventListener(chatUserEventListener);
+            if (chatsUsersDb != null) {
+                chatsUsersDb.addChildEventListener(chatUserEventListener);
+            }
+
         }
     }
 
     public static void deatchChatDb() {
         if (chatUserEventListener != null) {
-            chatsUsersDb.removeEventListener(chatUserEventListener);
+            if (chatsUsersDb != null) {
+                chatsUsersDb.removeEventListener(chatUserEventListener);
+            }
+
             chatUserEventListener = null;
         }
     }
@@ -238,7 +244,6 @@ public class fav extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        attachChatUsersDb();
     }
 
     @Override
