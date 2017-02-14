@@ -114,9 +114,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
      */
 
     private int[] tabIcons = {
-            R.drawable.ic_chat_black_24dp,
             R.drawable.ic_group_add_black_24dp,
             R.drawable.ic_group_black_24dp,
+            R.drawable.ic_chat_black_24dp,
             R.drawable.ic_supervisor_account_black_24dp
     };
 
@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                     startActivityForResult(
                             AuthUI.getInstance()
                                     .createSignInIntentBuilder()
-                                    .setIsSmartLockEnabled(false)//tells the app to stay logged on resumed opening of the app
+                                    .setIsSmartLockEnabled(true)//tells the app to stay logged on resumed opening of the app
                                     .setProviders(Arrays.asList(new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build()))
                                     .build(),
                             RC_SIGN_IN);
@@ -237,9 +237,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new fav(), "Chats");
         adapter.addFragment(new group(), "Groups");
         adapter.addFragment(new topic(), "Topics");
+        adapter.addFragment(new fav(), "Chats");
         adapter.addFragment(new user(), "Online");
         viewPager.setAdapter(adapter);
     }

@@ -101,7 +101,7 @@ public class Chat extends AppCompatActivity {
          * initialize the adapter
          */
         chat_messageList = new ArrayList<>();
-        chat_messageAdapter = new Forums_Msg_Adapter(this, R.layout.outgoing, chat_messageList);
+        chat_messageAdapter = new Forums_Msg_Adapter(this, R.layout.incoming, chat_messageList);
 
         chatListView.setAdapter(chat_messageAdapter);
 
