@@ -70,7 +70,7 @@ public class MessageAdapter extends BaseAdapter {
 
         if (message.getUserName() == mUsername) {
             if (view == null) {
-                v = LayoutInflater.from(mContext).inflate(R.layout.outgoing, null, false);
+                v = LayoutInflater.from(mContext).inflate(R.layout.incoming, null, false);
                 holder1 = new ViewHolder1();
 
 
@@ -105,7 +105,7 @@ public class MessageAdapter extends BaseAdapter {
 
         } else {
             if (view == null) {
-                v = LayoutInflater.from(mContext).inflate(R.layout.incoming, null, false);
+                v = LayoutInflater.from(mContext).inflate(R.layout.outgoing, null, false);
                 holder2 = new ViewHolder2();
 
 
