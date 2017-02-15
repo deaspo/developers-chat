@@ -37,8 +37,8 @@ import java.util.Map;
 
 import activity.Status;
 import activity.UserType;
-import adapter.Forums_Msg_Adapter;
 import adapter.Message;
+import adapter.MessageAdapter;
 import github.ankushsachdeva.emojicon.EmojiconEditText;
 import github.ankushsachdeva.emojicon.EmojiconGridView.OnEmojiconClickedListener;
 import github.ankushsachdeva.emojicon.EmojiconsPopup;
@@ -61,7 +61,7 @@ public class Chat extends AppCompatActivity {
     private DatabaseReference senderRef;
     private ChildEventListener messageRefListener;
     private String selected_user, selected_user_id;
-    private Forums_Msg_Adapter chat_messageAdapter;
+    private MessageAdapter chat_messageAdapter;
     private ArrayList<Message> chat_messageList;
     private String sendKey;
     //Firebase storage & Database
@@ -101,7 +101,7 @@ public class Chat extends AppCompatActivity {
          * initialize the adapter
          */
         chat_messageList = new ArrayList<>();
-        chat_messageAdapter = new Forums_Msg_Adapter(this, R.layout.incoming, chat_messageList);
+        chat_messageAdapter = new MessageAdapter(chat_messageList, this);
 
         chatListView.setAdapter(chat_messageAdapter);
 
@@ -276,10 +276,13 @@ public class Chat extends AppCompatActivity {
                 message.setMessageStatus(Status.SENT);
                 message.setText(emojiconEditText.getText().toString());
                 message.setUserName(mUsername);
+                message.setUserId(mUID);
                 message.setUserType(UserType.SELF);
                 message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
+                //chat_messageList.add(message);
                 if (chat_messageAdapter != null)
                     chat_messageAdapter.notifyDataSetChanged();
+
                 /**
                  * set the recognisable values for sender and receiver
                  */
@@ -299,7 +302,7 @@ public class Chat extends AppCompatActivity {
                 cDatabaseReference.updateChildren(childUpdates);
 
 
-                // clear the input box
+                //clear the input box
                 emojiconEditText.setText("");
             }
         });
@@ -326,9 +329,11 @@ public class Chat extends AppCompatActivity {
                     message.setMessageStatus(Status.SENT);
                     message.setText(null);
                     message.setUserName(mUsername);
+                    message.setUserId(mUID);
                     message.setUserType(UserType.SELF);
                     message.setPhotoUrl(downloadUri.toString());
                     message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
+                    //chat_messageList.add(message);
                     if (chat_messageAdapter != null)
                         chat_messageAdapter.notifyDataSetChanged();
 
@@ -383,7 +388,10 @@ public class Chat extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Message message = dataSnapshot.getValue(Message.class);
-                chat_messageAdapter.add(message);
+                //chat_messageAdapter.add(message);
+                chat_messageList.add(message);
+                if (chat_messageAdapter != null)
+                    chat_messageAdapter.notifyDataSetChanged();
             }
 
             @Override

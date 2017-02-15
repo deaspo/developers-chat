@@ -39,9 +39,9 @@ import java.util.Date;
 
 import activity.Status;
 import activity.UserType;
-import adapter.Forums_Msg_Adapter;
 import adapter.Items_forums;
 import adapter.Message;
+import adapter.MessageAdapter;
 import github.ankushsachdeva.emojicon.EmojiconEditText;
 import github.ankushsachdeva.emojicon.EmojiconGridView.OnEmojiconClickedListener;
 import github.ankushsachdeva.emojicon.EmojiconsPopup;
@@ -49,6 +49,7 @@ import github.ankushsachdeva.emojicon.EmojiconsPopup.OnEmojiconBackspaceClickedL
 import github.ankushsachdeva.emojicon.EmojiconsPopup.OnSoftKeyboardOpenCloseListener;
 import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
+import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
 import static fragment.topic.tDatabaseReference;
 
@@ -74,7 +75,7 @@ public class TopicActivity extends AppCompatActivity {
     /**
      * using the  new adapter
      */
-    private Forums_Msg_Adapter messageAdapter;
+    private MessageAdapter messageAdapter;
     private ArrayList<Message> messageList;
 
     private boolean currentUserIsCreator = false;
@@ -125,7 +126,7 @@ public class TopicActivity extends AppCompatActivity {
          * initialize the adapter
          */
         messageList = new ArrayList<>();
-        messageAdapter = new Forums_Msg_Adapter(this, R.layout.outgoing, messageList);
+        messageAdapter = new MessageAdapter(messageList, this);
 
         forumListView.setAdapter(messageAdapter);
 
@@ -298,6 +299,7 @@ public class TopicActivity extends AppCompatActivity {
                 message.setMessageStatus(Status.SENT);
                 message.setText(emojiconEditText.getText().toString());
                 message.setUserName(mUsername);
+                message.setUserId(mUID);
                 message.setUserType(UserType.SELF);
                 message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
                 if (messageAdapter != null)
@@ -391,7 +393,10 @@ public class TopicActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Message message = dataSnapshot.getValue(Message.class);
-                messageAdapter.add(message);
+                messageList.add(message);
+                if (messageAdapter != null)
+                    messageAdapter.notifyDataSetChanged();
+
             }
 
             @Override
@@ -441,6 +446,7 @@ public class TopicActivity extends AppCompatActivity {
                     message.setMessageStatus(Status.SENT);
                     message.setText(null);
                     message.setUserName(mUsername);
+                    message.setUserId(mUID);
                     message.setPhotoUrl(downloadUri.toString());
                     message.setUserType(UserType.SELF);
                     message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
