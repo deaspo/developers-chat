@@ -31,17 +31,19 @@ public class Message {
     private String timeStamp;
     private Status messageStatus;
     private UserType userType;
+    private String userId;
 
 
     public Message() {
     }
 
-    public Message(String text, String name, String photoUrl, String timeStamp) {
+    public Message(String text, String name, String photoUrl, String timeStamp, String userId) {
         this.text = text;
         this.userName = name;
         this.photoUrl = photoUrl;
         //this.profilePicUrl = profilePicUrl;
         this.timeStamp = timeStamp;
+        this.userId = userId;
     }
 
     public String getText() {
@@ -64,9 +66,6 @@ public class Message {
         return timeStamp;
     }
 
-    //public  String getProfilePicUrl() { return profilePicUrl;}
-
-    //public void setProfilePicUrl(String profilePicUrl) {this.profilePicUrl = profilePicUrl;}
 
     public void setTimeStamp(String timeStamp) {
         this.timeStamp = timeStamp;
@@ -96,6 +95,14 @@ public class Message {
         this.userType = userType;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
@@ -104,6 +111,7 @@ public class Message {
         result.put("photoUrl", photoUrl);
         result.put("messageStatus", messageStatus);
         result.put("userType", userType);
+        result.put("userId", userId);
         return result;
     }
 }
