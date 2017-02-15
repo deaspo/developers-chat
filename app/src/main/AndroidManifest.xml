@@ -48,8 +48,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.deaspostudios.devchats.MainActivity" />
         </activity>
-        <activity android:name="ui.GroupActivity" />
-        <activity android:name=".AboutUs"></activity>
+        <activity
+            android:name="ui.GroupActivity"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".AboutUs"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

@@ -11,11 +11,14 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -83,6 +86,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     public static final String ANONYMOUS = "anonymous";
     public static final int RC_SIGN_IN = 1;
+    // tags used to attach the fragments
+    private static final String TAG_CHAT = "chats";
+    private static final String TAG_GROUP = "groups";
+    private static final String TAG_TOPIC = "topics";
+    private static final String TAG_USERS = "active users";
+    private static final String TAG_SETTINGS = "settings";
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
     public static String mUsername, mUserphoto, mUserEmail;
@@ -90,6 +99,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public static ChildEventListener usersChildEventListener;
     public static String mUID;
     public static String mEncodedEmail;
+    // index to identify current nav menu item
+    public static int navItemIndex = 0;
+    public static String CURRENT_TAG = TAG_CHAT;
     /**
      * to save db offline when there is no internet connection
      */
@@ -106,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private FirebaseDatabase usersDb;
     private MenuItem searchMenuItem;
     private SearchView searchView;
-
     /**
      * tab icons
      *
@@ -119,6 +130,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             R.drawable.ic_chat_black_24dp,
             R.drawable.ic_supervisor_account_black_24dp
     };
+    /**
+     * Navigation Drawer imporst and @params
+     *
+     * @param
+     * @return
+     */
+    private NavigationView navigationView;
+    private DrawerLayout drawer;
+    private View navHeader;
 
     public static void detachUsersListeners() {
         if (usersChildEventListener != null) {
@@ -173,6 +193,14 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
          */
         cFirebaseDatabase = FirebaseDatabase.getInstance();
         cDatabaseReference = cFirebaseDatabase.getReference().child("chats");
+
+        /**
+         * setup the navigation drawer and initialiszes
+         */
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+        setUpNavigationView();
 
         //setting up the tabs
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -233,6 +261,97 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         CheckConnection connection = new CheckConnection();
 
         this.registerReceiver(connection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+
+    /**
+     * assigning the right fragment on navigation drawer item click
+     *
+     * @param
+     */
+
+    private void setUpNavigationView() {
+        //Setting Navigation View Item Selected Listener to handle the item click of the navigation menu
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+
+            // This method will trigger on item Click of navigation menu
+            @Override
+            public boolean onNavigationItemSelected(MenuItem menuItem) {
+
+                //Check to see which item was being clicked and perform appropriate action
+                switch (menuItem.getItemId()) {
+                    case R.id.nav_chat:
+                        navItemIndex = 2;
+                        CURRENT_TAG = TAG_CHAT;
+                        viewPager.setCurrentItem(2, true);
+                        drawer.closeDrawers();
+                        break;
+                    case R.id.nav_groups:
+                        navItemIndex = 0;
+                        CURRENT_TAG = TAG_GROUP;
+                        viewPager.setCurrentItem(0, true);
+                        drawer.closeDrawers();
+                        break;
+                    case R.id.nav_topics:
+                        navItemIndex = 1;
+                        CURRENT_TAG = TAG_TOPIC;
+                        viewPager.setCurrentItem(1, true);
+                        drawer.closeDrawers();
+                        break;
+                    case R.id.nav_users:
+                        navItemIndex = 3;
+                        CURRENT_TAG = TAG_USERS;
+                        viewPager.setCurrentItem(3, true);
+                        drawer.closeDrawers();
+                        break;
+                    case R.id.nav_settings: /* need to have a settings activity */
+                        navItemIndex = 4;
+                        CURRENT_TAG = TAG_SETTINGS;
+                        break;
+                    case R.id.nav_about_us:
+                        // launch new intent instead of loading fragment
+                        startActivity(new Intent(MainActivity.this, AboutUs.class));
+                        drawer.closeDrawers();
+                        return true;
+                    default:
+                        navItemIndex = 0;
+                        CURRENT_TAG = TAG_CHAT;
+                        viewPager.setCurrentItem(0, true);
+                        break;
+                }
+
+                //Checking if the item is in checked state or not, if not make it in checked state
+                if (menuItem.isChecked()) {
+                    menuItem.setChecked(false);
+                } else {
+                    menuItem.setChecked(true);
+                }
+                menuItem.setChecked(true);
+
+                return true;
+            }
+        });
+
+
+        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.openDrawer, R.string.closeDrawer) {
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                // Code here will be triggered once the drawer closes as we dont want anything to happen so we leave this blank
+                super.onDrawerClosed(drawerView);
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                // Code here will be triggered once the drawer open as we dont want anything to happen so we leave this blank
+                super.onDrawerOpened(drawerView);
+            }
+        };
+
+        //Setting the actionbarToggle to drawer layout
+        drawer.setDrawerListener(actionBarDrawerToggle);
+
+        //calling sync state is necessary or else your hamburger icon wont show up
+        actionBarDrawerToggle.syncState();
     }
 
     private void setupViewPager(ViewPager viewPager) {
