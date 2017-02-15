@@ -2,6 +2,7 @@ package adapter;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,23 +44,34 @@ public class Forums_Msg_Adapter extends ArrayAdapter<Message> {
 
     }
 
+    @Override
+    public int getCount() {
+        return object.size();
+    }
+
+    @Nullable
+    @Override
+    public Message getItem(int position) {
+        return object.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View v = null;
         Message message = object.get(position);
-
         ViewHolder1 holder1;
         ViewHolder2 holder2;
-
         if (message.getUserName() == mUsername) {
             message.setUserType(UserType.SELF);
-
         } else {
             message.setUserType(UserType.OTHER);
         }
-
-
         if (message.getUserName().contains(mUsername)) {
             if (convertView == null) {
                 v = LayoutInflater.from(context).inflate(R.layout.outgoing, null, false);
@@ -102,18 +114,18 @@ public class Forums_Msg_Adapter extends ArrayAdapter<Message> {
 
 
                 //initializes
-                holder2.senderName = (TextView) v.findViewById(R.id.user_reply);
+                holder2.senderName = (TextView) v.findViewById(R.id.other_user);
                 holder2.messageTextView = (TextView) v.findViewById(R.id.textview_message2);
                 holder2.timeTextView = (TextView) v.findViewById(R.id.textview_time2);
                 holder2.photoView = (ImageView) v.findViewById(R.id.photoUser2);
-                holder2.messageStatus = (ImageView) v.findViewById(R.id.user_reply_status);
+                holder2.messageStatus = (ImageView) v.findViewById(R.id.user_sent_status);
 
 
                 v.setTag(holder2);
 
             } else {
                 v = convertView;
-                holder2 = (ViewHolder2) v.getTag();
+                holder2 = (ViewHolder2) v.getTag(); //error likely to be fix
             }
 
             holder2.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));

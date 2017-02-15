@@ -16,24 +16,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/photoView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:adjustViewBounds="true"
-                android:paddingLeft="6dp" />
-
             <LinearLayout
                 android:id="@+id/senderName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
                 <TextView
+                    android:id="@+id/other_user"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="6dp"
-                    android:text="You:"
+                    android:text="Other user"
                     android:textSize="16sp"
                     android:textStyle="normal|bold" />
 
@@ -62,11 +55,18 @@
 
             <LinearLayout
                 android:id="@+id/photo"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/msgYou">
 
 
+                <ImageView
+                    android:id="@+id/photoView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:adjustViewBounds="true"
+                    android:paddingLeft="6dp" />
             </LinearLayout>
 
             <LinearLayout
