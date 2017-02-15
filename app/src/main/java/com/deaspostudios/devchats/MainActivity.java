@@ -89,12 +89,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public static DatabaseReference usersDbRef;
     public static ChildEventListener usersChildEventListener;
     public static String mUID;
+    public static String mEncodedEmail;
     /**
      * to save db offline when there is no internet connection
      */
     static boolean localCache = false;
     private static int SORT_ORDER = 0;
-    protected String mEncodedEmail;
     //tabs specific
     private Toolbar toolbar;
     private TabLayout tabLayout;
@@ -295,10 +295,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         if (mAuthStateListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
-        if (mUsername != null && mEncodedEmail != null && mUID != null) {
-            removeUserName(mUsername, mEncodedEmail, mUID); /* only carry out the action if there is an existing user */
+        if (mUsername != null && mUserEmail != null && mUID != null) {
+            removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
         }
-
 
         detachUserDatabaseListener();
         onlineUsers.clear();
@@ -308,6 +307,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     @Override
     protected void onStop() {
         super.onStop();
+        if (mUsername != null && mUserEmail != null && mUID != null) {
+            removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
+        }
         detachUserDatabaseListener();
         usersAdapter.clear();
         onlineUsers.clear();
@@ -347,9 +349,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
-        if (pageItemIndex == 0) {
+        if (pageItemIndex == 2) {
             getMenuInflater().inflate(R.menu.main, menu);
-        } else if (pageItemIndex == 1) {
+        } else if (pageItemIndex == 0) {
             getMenuInflater().inflate(R.menu.menu_groups, menu);
             SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
             searchMenuItem = menu.findItem(R.id.app_bar_search_groups);
@@ -359,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             searchView.setSubmitButtonEnabled(true);
 
             searchView.setOnQueryTextListener(this);
-        } else if (pageItemIndex == 2) {
+        } else if (pageItemIndex == 1) {
             getMenuInflater().inflate(R.menu.menu_topics, menu);
             SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
             searchMenuItem = menu.findItem(R.id.app_bar_search_topic);
