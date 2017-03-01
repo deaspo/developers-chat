@@ -4,6 +4,7 @@
     <string name="app_name">Developers Chat</string>
     <string name="type_your_message">Type a message</string>
     <string name="NoRecent">No recent</string>
+    <string name="action_setting">Settings</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_chit_chat">Chat</string>
@@ -13,10 +14,12 @@
     <string name="action_share_list">Share List</string>
     <string name="action_remove_list">Remove Group</string>
     <string name="action_remove_topic">Remove Topic</string>
+    <string name="action_remove_group">Remove Group</string>
     <string name="action_archive">Archive</string>
 
     <!-- Menu Items -->
-    <string name="action_edit_list_name">Edit list name</string>
+    <string name="action_edit_topic_name">Edit Topic name</string>
+    <string name="action_edit_group_name">Edit Group name</string>
 
 
     <!-- Edit and Add Group Dialogs -->
@@ -24,7 +27,7 @@
     <string name="positive_button_edit_group">Edit group name</string>
     <string name="action_sort_groups">Sort</string>
     <string name="negative_button_cancel">Cancel</string>
-    <string name="dialog_message_are_you_sure_remove_group">Are you sure you want to remove this group?</string>
+    <string name="dialog_message_are_you_sure_remove_group">Are you sure you want to delete this group?</string>
 
 
     <!-- Edit and Add Topic Dialogs -->
@@ -32,7 +35,7 @@
     <string name="positive_button_edit_topic">Edit topic name</string>
     <string name="action_sort_topics">Sort</string>
     <string name="negative_button_cancel_edit">Cancel</string>
-    <string name="dialog_message_are_you_sure_remove_topic">Are you sure you want to remove this topic?</string>
+    <string name="dialog_message_are_you_sure_remove_topic">Are you sure you want to delete this topic?</string>
 
     <string name="created_by">Created by </string>
 

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ import adapter.User;
 import adapter.UserAdapter;
 import ui.Chat;
 
+import static com.deaspostudios.devchats.MainActivity.mProfile;
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
 
@@ -54,6 +56,7 @@ public class user extends Fragment {
     private static ChildEventListener uChildEventListener;
     private ListView mMessageListView;
     private ProgressBar mProgressBar;
+
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -106,6 +109,10 @@ public class user extends Fragment {
 
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
+                    if (user != null) {
+                        usersAdapter.remove(user);
+                    }
                 }
 
                 @Override
@@ -114,6 +121,8 @@ public class user extends Fragment {
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
+                    // Failed to read value
+                    Log.w("TAG:", "Failed to read value.", databaseError.toException());
                 }
             };
             uDatabaseReference.addChildEventListener(uChildEventListener);
@@ -130,7 +139,7 @@ public class user extends Fragment {
     }
 
     public static void setUsername(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()));
+        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).setValue(user_logged);
         }
@@ -139,7 +148,7 @@ public class user extends Fragment {
     }
 
     public static void removeUserName(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()));
+        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).removeValue();
         }

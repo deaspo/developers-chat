@@ -9,6 +9,7 @@ public class User {
     private String name;
     private String email;
     private String uid;
+    private String ppic;
 
 
     /**
@@ -25,10 +26,11 @@ public class User {
      * @param email
      * @param uid
      */
-    public User(String name, String email, String uid, String last_active) {
+    public User(String name, String email, String uid, String last_active, String ppic) {
         this.name = name;
         this.email = email;
         this.uid = uid;
+        this.ppic = ppic;
         this.last_active = last_active;
     }
 
@@ -58,6 +60,14 @@ public class User {
 
     public String getDate_joined() {
         return last_active;
+    }
+
+    public String getPpic() {
+        return ppic;
+    }
+
+    public void setPpic(String ppic) {
+        this.ppic = ppic;
     }
 
     public void setLast_active(String last_active) {

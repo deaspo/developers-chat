@@ -29,6 +29,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -49,6 +50,7 @@ import github.ankushsachdeva.emojicon.EmojiconsPopup.OnEmojiconBackspaceClickedL
 import github.ankushsachdeva.emojicon.EmojiconsPopup.OnSoftKeyboardOpenCloseListener;
 import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
+import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
 import static fragment.topic.tDatabaseReference;
@@ -66,6 +68,7 @@ public class TopicActivity extends AppCompatActivity {
     private ProgressBar forumPb;
     private String userMail;
     private String topicId;
+    private String topicName;
     private DatabaseReference currentForumRef, currentForumMessages;
     private ValueEventListener currentForumRefListener;
     private ChildEventListener CurrentMessageRefListener;
@@ -95,6 +98,7 @@ public class TopicActivity extends AppCompatActivity {
         if (bundle != null) {
             topicId = bundle.getString("forumKey");
             userMail = bundle.getString("usermail");
+            topicName = bundle.getString("forumName");
 
             if (topicId == null) {
                 finish();//stop is no valid reference is passed
@@ -307,6 +311,12 @@ public class TopicActivity extends AppCompatActivity {
                 currentForumMessages.push().setValue(message);
                 // clear the input box
                 emojiconEditText.setText("");
+                /**
+                 * subcribes the sender to the topic group
+                 */
+                //start subcribe
+                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicName));
+                // [END subscribe_topics]
             }
         });
 

@@ -1,6 +1,8 @@
 package ui;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,7 +29,9 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -48,6 +52,7 @@ import github.ankushsachdeva.emojicon.EmojiconsPopup.OnEmojiconBackspaceClickedL
 import github.ankushsachdeva.emojicon.EmojiconsPopup.OnSoftKeyboardOpenCloseListener;
 import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
+import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
 import static fragment.group.gDatabaseReference;
@@ -59,14 +64,14 @@ import static fragment.group.gDatabaseReference;
 public class GroupActivity extends AppCompatActivity {
     private static final int RC_PHOTO_PICKER = 2;
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
+    private static DatabaseReference currentForumRef, currentForumMessages;
     private ListView groupListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
     private ProgressBar groupPb;
     private String userMail;
-
     private String groupId;
-    private DatabaseReference currentForumRef, currentForumMessages;
+    private String groupName;
     private ValueEventListener currentForumRefListener;
     private ChildEventListener CurrentMessageRefListener;
 
@@ -97,6 +102,7 @@ public class GroupActivity extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             groupId = bundle.getString("forumKey");
+            groupName = bundle.getString("forumName");
             userMail = bundle.getString("usermail");
 
             if (groupId == null) {
@@ -308,6 +314,13 @@ public class GroupActivity extends AppCompatActivity {
                 currentForumMessages.push().setValue(message);
                 // clear the input box
                 emojiconEditText.setText("");
+                /**
+                 * subcribes the sender to the topic group
+                 */
+                //start subcribe
+
+                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupName));
+                // [END subscribe_topics]
             }
         });
 
@@ -320,12 +333,12 @@ public class GroupActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_active_topic, menu);
+        getMenuInflater().inflate(R.menu.menu_active_group, menu);
         /**
          * access the menu items
          */
-        MenuItem edit = menu.findItem(R.id.action_edit_topic_name);
-        MenuItem remove = menu.findItem(R.id.action_remove_topic);
+        MenuItem edit = menu.findItem(R.id.action_edit_group_name);
+        MenuItem remove = menu.findItem(R.id.action_remove_group);
 
 
         edit.setVisible(currentUserIsCreator);
@@ -333,6 +346,20 @@ public class GroupActivity extends AppCompatActivity {
 
 
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        /**
+         * action on menu item selected
+         */
+        switch (item.getItemId()) {
+            case R.id.action_remove_group:
+                deleteGroup(groupId);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -464,5 +491,51 @@ public class GroupActivity extends AppCompatActivity {
 
 
         }
+    }
+
+    private void deleteGroup(final String groupName) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this.getApplicationContext());
+
+        dialog.setTitle("Deleting " + groupName)
+                .setIcon(R.drawable.ic_launcher)
+                .setMessage("Are you sure you  want to delete this group and all it's conversation?")
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialoginterface, int i) {
+                        dialoginterface.cancel();
+                    }
+                })
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialoginterface, int i) {
+                        Query query = currentForumRef.orderByValue().equalTo(groupName);
+                        /**
+                         * Delete the group
+                         */
+                        query.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.hasChildren()) {
+                                    DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                                    firstChild.getRef().removeValue();
+                                    //close the group
+                                    GroupActivity.this.finish();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+                });
+        //create the alert
+        AlertDialog alertDialog = dialog.create();
+
+        //show
+        alertDialog.show();
+
+
+
+
     }
 }

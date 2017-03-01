@@ -71,22 +71,23 @@ public class MessageAdapter extends BaseAdapter {
 
 
         if (message.getUserId().contains(mUID)) {
-            if (view == null) {
-                v = LayoutInflater.from(mContext).inflate(R.layout.incoming, null, false);
-                holder1 = new ViewHolder1();
+            v = LayoutInflater.from(mContext).inflate(R.layout.incoming, viewGroup, false);
+            holder1 = new ViewHolder1();
 
-                //initialize the variables
-                holder1.messageTextView = (TextView) v.findViewById(R.id.textview_message2);
-                holder1.timeTextView = (TextView) v.findViewById(R.id.textview_time2);
-                holder1.photoView = (ImageView) v.findViewById(R.id.photoUser2);
-                holder1.messageStatus = (ImageView) v.findViewById(R.id.user_sent_status);
-                holder1.photo_layout = (LinearLayout) v.findViewById(R.id.ppic);
+            //initialize the variables
+            holder1.messageTextView = (TextView) v.findViewById(R.id.textview_message2);
+            holder1.timeTextView = (TextView) v.findViewById(R.id.textview_time2);
+            holder1.photoView = (ImageView) v.findViewById(R.id.photoUser2);
+            holder1.messageStatus = (ImageView) v.findViewById(R.id.user_sent_status);
+            holder1.photo_layout = (LinearLayout) v.findViewById(R.id.ppic);
 
-                v.setTag(holder1);
+            v.setTag(holder1);
+            /*if (view == null) {
+
             } else {
                 v = view;
                 holder1 = (ViewHolder1) v.getTag();
-            }
+            }*/
 
             holder1.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             boolean isPhoto = message.getPhotoUrl() != null;
@@ -115,25 +116,24 @@ public class MessageAdapter extends BaseAdapter {
             }
 
         } else {
-            if (view == null) {
-                v = LayoutInflater.from(mContext).inflate(R.layout.outgoing, null, false);
-                holder2 = new ViewHolder2();
+            v = LayoutInflater.from(mContext).inflate(R.layout.outgoing, viewGroup, false);
+            holder2 = new ViewHolder2();
 
-                //initializes
-                holder2.messageTextView = (TextView) v.findViewById(R.id.textview_message);
-                holder2.timeTextView = (TextView) v.findViewById(R.id.textview_time);
-                holder2.photoView = (ImageView) v.findViewById(R.id.photoView);
-                holder2.senderName = (TextView) v.findViewById(R.id.other_user);
-                holder2.photo = (LinearLayout) v.findViewById(R.id.photo);
+            //initializes
+            holder2.messageTextView = (TextView) v.findViewById(R.id.textview_message);
+            holder2.timeTextView = (TextView) v.findViewById(R.id.textview_time);
+            holder2.photoView = (ImageView) v.findViewById(R.id.photoView);
+            holder2.senderName = (TextView) v.findViewById(R.id.other_user);
+            holder2.photo = (LinearLayout) v.findViewById(R.id.photo);
 
+            v.setTag(holder2);
+            /*if (view == null) {
 
-
-                v.setTag(holder2);
 
             } else {
                 v = view;
                 holder2 = (ViewHolder2) v.getTag();
-            }
+            }*/
 
             holder2.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             holder2.senderName.setText(message.getUserName());

@@ -22,10 +22,10 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Filter;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -34,16 +34,21 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import adapter.ForumsAdapter;
 import adapter.Items_forums;
+import adapter.RecycleAdapterTopic;
+import adapter.RecyclerAdapterGroup;
 import adapter.User;
 import adapter.UserAdapter;
 import dialog.AddGroupDialog;
@@ -61,12 +66,12 @@ import static fragment.fav.chatsUsersDb;
 import static fragment.fav.chattingAdapter;
 import static fragment.fav.chattingUsers;
 import static fragment.fav.deatchChatDb;
+import static fragment.group.adapter;
 import static fragment.group.attachGroupDatabaseListener;
 import static fragment.group.detachGroupDatabaseListener;
 import static fragment.group.gDatabaseReference;
 import static fragment.group.gFirebaseDatabase;
 import static fragment.group.groups;
-import static fragment.group.groupsAdapter;
 import static fragment.topic.attachTopicDatabaseListener;
 import static fragment.topic.detachTopicDatabaseListener;
 import static fragment.topic.tDatabaseReference;
@@ -99,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public static ChildEventListener usersChildEventListener;
     public static String mUID;
     public static String mEncodedEmail;
+    public static String mProfile;
     // index to identify current nav menu item
     public static int navItemIndex = 0;
     public static String CURRENT_TAG = TAG_CHAT;
@@ -111,6 +117,8 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
+
+    private StorageReference storageReference, imageRef;
     //Firebase auth
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
@@ -155,11 +163,14 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         return mail.replace(",", ".");
     }
 
+    public static String escapeSpace(String name) {
+        return name.replace(" ", "_");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         /**
          * locally chache db
@@ -171,6 +182,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //auth
         mFirebaseAuth = FirebaseAuth.getInstance();
+
+        storageReference = FirebaseStorage.getInstance().getReference();
+        imageRef = storageReference.child("profile_photos/ic_person_black_24dp.png");
 
         //initialize database
         uFirebaseDatabase = FirebaseDatabase.getInstance();
@@ -225,14 +239,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //initialize topics
         topics = new ArrayList<>();
-        topicsAdapter = new ForumsAdapter(this, R.layout.item_forums, topics);
+        topicsAdapter = new RecycleAdapterTopic(this, topics);
         /**
          * testing with the activelistadapter
          */
 
         //initialize groups
         groups = new ArrayList<>();
-        groupsAdapter = new ForumsAdapter(this, R.layout.item_forums, groups);
+        adapter = new RecyclerAdapterGroup(this, groups);
+        //groupsAdapter = new ForumsAdapter(this, R.layout.item_forums, groups);
 
         //listeners for pager
         setViewPager();
@@ -382,18 +397,24 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        topicsAdapter.getFilter().filter(newText, new Filter.FilterListener() {
-            @Override
-            public void onFilterComplete(int count) {
-                List<Items_forums> items = new ArrayList<Items_forums>();
-                count = topicsAdapter.getCount();
-                for (int index = 0; index < count; ++index) {
-                    items.add(topicsAdapter.getItem(index));
-                    topicsAdapter.notifyDataSetChanged();
-                }
-            }
-        });
+        final List<Items_forums> filteredItems = filter(topics, newText);
+        final List<Items_forums> filteredGroup = filter(groups, newText);
+
+        topicsAdapter.setFilter(filteredItems);
+        adapter.setFilter(filteredGroup);
         return true;
+    }
+
+    private List<Items_forums> filter(List<Items_forums> models, String query) {
+        query = query.toLowerCase();
+        final List<Items_forums> filteredModelList = new ArrayList<>();
+        for (Items_forums model : models) {
+            final String text = model.getName().toLowerCase();
+            if (text.contains(query)) {
+                filteredModelList.add(model);
+            }
+        }
+        return filteredModelList;
     }
 
     @Override
@@ -441,6 +462,18 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             mUsername = username;
         }
         mUserEmail = useremail;
+        mProfile = imageRef.toString();
+        /*imageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                mProfile = uri.toString();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+
+            }
+        });*/
         addUser(username, useremail, uid);
         setUsername(mUsername, useremail, uid);
         //chats
@@ -556,13 +589,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     }
 
-    public void showSearchDialog(View view) {
-
-    }
-
     private void addUser(String mUsername, String mEncodedEmail, String uUid) {
         mUID = uUid;
-        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()));
+        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile);
         usersDbRef.child(uUid).setValue(user);
 
         /*chatsFirebaseDatabase =FirebaseDatabase.getInstance();
@@ -590,42 +619,54 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     public void sortTopics() {
         if (SORT_ORDER == 1) {
-            alphabeticalSorting(topicsAdapter);
+            alphabeticalSorting(topics);
             SORT_ORDER = 0;
         } else if (SORT_ORDER == 0) {
-            reverseSorting(topicsAdapter);
+            reverseSorting(topics);
             SORT_ORDER = 1;
         }
     }
 
     public void sortGroups() {
         if (SORT_ORDER == 1) {
-            alphabeticalSorting(groupsAdapter);
+            alphabeticalSorting(groups);
             SORT_ORDER = 0;
         } else if (SORT_ORDER == 0) {
-            reverseSorting(groupsAdapter);
+            reverseSorting(groups);
             SORT_ORDER = 1;
         }
     }
 
-    private void reverseSorting(ForumsAdapter forumsAdapter) {
-        forumsAdapter.sort(new Comparator<Items_forums>() {
+    private void reverseSorting(List<Items_forums> forum) {
+        Collections.sort(forum, new Comparator<Items_forums>() {
             @Override
             public int compare(Items_forums o1, Items_forums o2) {
                 return -o1.getName().compareTo(o2.getName());
             }
         });
-        forumsAdapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
     }
 
-    private void alphabeticalSorting(ForumsAdapter forumsAdapter) {
-        forumsAdapter.sort(new Comparator<Items_forums>() {
+    private void alphabeticalSorting(List<Items_forums> forum) {
+        Collections.sort(forum, new Comparator<Items_forums>() {
             @Override
             public int compare(Items_forums o1, Items_forums o2) {
                 return o1.getName().compareTo(o2.getName());
             }
         });
-        forumsAdapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
+    }
+
+    private void userToken() {
+        /**
+         * extracts the user token
+         */
+        // Get token
+        String token = FirebaseInstanceId.getInstance().getToken();
+
+        // Log and toast
+        Log.d("Token for Polycarp", token);
+        System.out.println("Token for Polycarp " + token);
     }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -702,6 +743,5 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             }
         }
     }
-
 
 }

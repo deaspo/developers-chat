@@ -1,16 +1,16 @@
 package fragment;
 
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
 
 import com.deaspostudios.devchats.R;
 import com.google.firebase.database.ChildEventListener;
@@ -18,16 +18,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 
-import java.util.Comparator;
 import java.util.List;
 
-import adapter.ForumsAdapter;
+import Widgets.DividerItemDecoration;
 import adapter.Items_forums;
-import ui.TopicActivity;
-
-import static com.deaspostudios.devchats.MainActivity.mUserEmail;
+import adapter.RecycleAdapterTopic;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -37,26 +33,23 @@ import static com.deaspostudios.devchats.MainActivity.mUserEmail;
  * Use the {@link topic#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class topic extends Fragment {
+public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    public static Query orderedActiveUserListsRef;
     public static List<Items_forums> topics;
-    //adapters for topics
-    public static ForumsAdapter topicsAdapter;
+    public static RecycleAdapterTopic topicsAdapter;
     //firebase database instances
     public static FirebaseDatabase tFirebaseDatabase;
     public static DatabaseReference tDatabaseReference;
     private static ChildEventListener tChildEventListener;
-    private ListView mMessageListView;
-    private ProgressBar mProgressBar;
+    private static SwipeRefreshLayout swipeRefreshLayout;
+    //adapters for topics
+    private RecyclerView recyclerView;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
-
     private OnFragmentInteractionListener mListener;
 
     public topic() {
@@ -82,26 +75,27 @@ public class topic extends Fragment {
     }
 
     public static void attachTopicDatabaseListener() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
         if (tChildEventListener == null) {
             tChildEventListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
-                    topicsAdapter.add(items_forums);
-                    topicsAdapter.sort(new Comparator<Items_forums>() {
-                        @Override
-                        public int compare(Items_forums o1, Items_forums o2) {
-                            return o1.getName().compareTo(o2.getName());
-                        }
-                    });
+                    topics.add(items_forums);
                 }
 
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                    Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
+                    topics.add(items_forums);
                 }
 
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
+                    topics.add(items_forums);
                 }
 
                 @Override
@@ -113,6 +107,10 @@ public class topic extends Fragment {
                 }
             };
             tDatabaseReference.addChildEventListener(tChildEventListener);
+        }
+        topicsAdapter.notifyDataSetChanged();
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
         }
 
     }
@@ -142,41 +140,31 @@ public class topic extends Fragment {
         getActivity().getWindow().setBackgroundDrawable(getResources().getDrawable(R.drawable.background));
 
         //initializes
-        mProgressBar = (ProgressBar) view.findViewById(R.id.topicProgressBar);
-        mMessageListView = (ListView) view.findViewById(R.id.topicListView);
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_layout_topic);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_topic);
+
+        //mMessageListView.setAdapter(groupsAdapter);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(topicsAdapter);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         /**
-         * want to change to activelistadapter
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
          */
-        //mMessageListView.setAdapter(topicsAdapter);
-        mMessageListView.setAdapter(topicsAdapter);
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                        attachTopicDatabaseListener();
+                                    }
+                                }
+        );
 
-        // Initialize progress bar
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-
-        mMessageListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                /**
-                 * implementing the forums adapter
-                 */
-                Items_forums selectedforum = topicsAdapter.getItem(i);
-                if (selectedforum != null) {
-                    Intent intent = new Intent(getActivity(), TopicActivity.class);
-                    /*
-                      * Gets the right data to pass
-                     */
-                    String forumId = selectedforum.getForum_id();
-                    String currentUserMail = mUserEmail;
-                    intent.putExtra("forumKey", forumId);
-                    intent.putExtra("usermail", currentUserMail);
-                    /**
-                     * start the activity with details of the list
-                     */
-                    startActivity(intent);
-                }
-            }
-        });
 
         return view;
     }
@@ -208,28 +196,32 @@ public class topic extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        attachTopicDatabaseListener();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         attachTopicDatabaseListener();
-        Query orderedActiveUserListsRef;
     }
 
     @Override
     public void onPause() {
         super.onPause();
         detachTopicDatabaseListener();
-        topicsAdapter.clear();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         detachTopicDatabaseListener();
-        topicsAdapter.clear();
     }
+
+    @Override
+    public void onRefresh() {
+        attachTopicDatabaseListener();
+    }
+
 
     /**
      * This interface must be implemented by activities that contain this

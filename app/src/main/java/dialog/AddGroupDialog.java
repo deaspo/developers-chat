@@ -25,7 +25,6 @@ import adapter.Items_forums;
 
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
-import static fragment.group.attachGroupDatabaseListener;
 import static fragment.group.gDatabaseReference;
 
 /**
@@ -144,7 +143,7 @@ public class AddGroupDialog extends DialogFragment {
             /**
              * db listener
              */
-            attachGroupDatabaseListener();
+            //attachGroupDatabaseListener();
 
             /* Close the dialog fragment */
             AddGroupDialog.this.getDialog().cancel();
