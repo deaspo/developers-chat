@@ -63,33 +63,6 @@ public class RecyclerAdapterGroup extends RecyclerView.Adapter<RecyclerAdapterGr
             super(view);
             itemName = (TextView) view.findViewById(R.id.text_view_list_name);
             creator = (TextView) view.findViewById(R.id.text_view_created_by);
-            /*view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    view.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (getAdapterPosition() != RecyclerView.NO_POSITION) {
-                                Items_forums selectedForum = list.get(getAdapterPosition());
-                                if (selectedForum != null) {
-                                    Intent intent = new Intent(mContext, GroupActivity.class);
-                                    String forumId = selectedForum.getForum_id();
-                                    String forumName = selectedForum.getTopic_name();
-                                    String currentUserMail = mUserEmail;
-                                    intent.putExtra("forumKey", forumId);
-                                    intent.putExtra("forumName", forumName);
-                                    intent.putExtra("usermail", currentUserMail);
-                                    *//**
-                                     * satrt activity
-             *//*
-                                    mContext.startActivity(intent);
-
-                                }
-                            }
-                        }
-                    });
-                }
-            });*/
         }
 
     }
