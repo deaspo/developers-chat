@@ -68,12 +68,12 @@ public class GroupActivity extends AppCompatActivity {
     private static final int RC_PHOTO_PICKER = 2;
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static DatabaseReference currentForumRef, currentForumMessages;
+    private static String groupId;
     private ListView groupListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
     private ProgressBar groupPb;
     private String userMail;
-    private String groupId;
     private String groupName;
     private ValueEventListener currentForumRefListener;
     private ChildEventListener CurrentMessageRefListener;
@@ -581,6 +581,7 @@ public class GroupActivity extends AppCompatActivity {
             if (showOK && okClass != null) {
                 builder.setPositiveButton("Select this task", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        gDatabaseReference.child(groupId).removeValue();
                         Intent i = new Intent(context, okClass);
                         startActivity(i);
                     }
