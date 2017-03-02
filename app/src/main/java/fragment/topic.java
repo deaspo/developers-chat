@@ -90,23 +90,17 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
                     topics.add(items_forums);
                 }
-
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                    Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
-                    topics.add(items_forums);
                 }
-
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
-                    topics.add(items_forums);
+                    topics.remove(items_forums);
                 }
-
                 @Override
                 public void onChildMoved(DataSnapshot dataSnapshot, String s) {
                 }
-
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                 }
@@ -119,7 +113,6 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
         }
 
     }
-
     public static void detachTopicDatabaseListener() {
         if (tChildEventListener != null) {
             tDatabaseReference.removeEventListener(tChildEventListener);
@@ -167,7 +160,7 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
                     intent.putExtra("forumName", forumName);
                     intent.putExtra("usermail", currentUserMail);
                     /**
-                     * satrt activity
+                     * start activity
                      */
                     startActivity(intent);
 
@@ -237,12 +230,14 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
     public void onPause() {
         super.onPause();
         detachTopicDatabaseListener();
+        topics.clear();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         detachTopicDatabaseListener();
+        topics.clear();
     }
 
     @Override

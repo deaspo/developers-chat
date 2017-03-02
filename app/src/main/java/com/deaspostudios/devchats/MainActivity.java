@@ -611,6 +611,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             case R.id.action_sort_groups:
                 sortGroups();
                 return true;
+            case R.id.action_refresh:
+                refreshAllViews();
+                return true;
             case R.id.action_setting:
                 startSettings();
             default:
@@ -682,6 +685,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         // Log and toast
         Log.d("Token for Polycarp", token);
         System.out.println("Token for Polycarp " + token);
+    }
+
+    private void refreshAllViews() {
+        attachGroupDatabaseListener();
+        attachTopicDatabaseListener();
+        attachUserDatabaseListener();
     }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
