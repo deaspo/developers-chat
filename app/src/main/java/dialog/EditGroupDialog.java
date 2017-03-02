@@ -17,24 +17,20 @@ import android.widget.TextView;
 import com.deaspostudios.devchats.Constants;
 import com.deaspostudios.devchats.R;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ServerValue;
 
-import java.util.HashMap;
-
-import adapter.Items_forums;
-
-import static com.deaspostudios.devchats.MainActivity.mUserEmail;
-import static com.deaspostudios.devchats.MainActivity.mUsername;
 import static fragment.group.gDatabaseReference;
 
 /**
- * Created by polyc on 04/02/2017.
+ * Created by polyc on 02/03/2017.
  */
 
-public class AddGroupDialog extends DialogFragment {
+public class EditGroupDialog extends DialogFragment {
     String mEncodedEmail;
+    String groupID;
 
-    EditText addGroup;
+    String mGroupName;
+
+    EditText editGroupName;
 
 
     /**
@@ -42,24 +38,25 @@ public class AddGroupDialog extends DialogFragment {
      * passes a bundle with data into it when adapter is created
      */
 
-    public static AddGroupDialog newInstance(String mEncodedEmail) {
-        AddGroupDialog addGroupDialog = new AddGroupDialog();
+    public static EditGroupDialog newInstance(String mGroupName, String mGroupID) {
+        EditGroupDialog editGroupDialog = new EditGroupDialog();
         Bundle bundle = new Bundle();
-        bundle.putString(Constants.KEY_ENCODED_EMAIL, mEncodedEmail);
-        addGroupDialog.setArguments(bundle);
-        return addGroupDialog;
+        bundle.putString(Constants.KEY_LIST_NAME, mGroupName);
+        bundle.putString(Constants.KEY_LIST_ID, mGroupID);
+        editGroupDialog.setArguments(bundle);
+        return editGroupDialog;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mEncodedEmail = getArguments().getString(Constants.KEY_ENCODED_EMAIL);
+        mGroupName = getArguments().getString(Constants.KEY_LIST_NAME);
+        groupID = getArguments().getString(Constants.KEY_LIST_ID);
     }
 
     /**
      * Open the keyboard automatically when the dialog fragment is opened
      */
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -72,16 +69,17 @@ public class AddGroupDialog extends DialogFragment {
         /* Use the Builder class for convenient dialog construction */
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.CustomTheme_Dialog);
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_add_group, null);
-        addGroup = (EditText) view.findViewById(R.id.add_group_dialog);
+        View view = inflater.inflate(R.layout.dialog_edit_group, null);
+        editGroupName = (EditText) view.findViewById(R.id.edit_group_dialog);
+        editGroupName.setText(mGroupName);
         /**
-         * Call addGroup() when user taps "Done" keyboard action
+         * Call editGroup() when user taps "Done" keyboard action
          */
-        addGroup.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        editGroupName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
-                    addGroup();
+                    editGroup();
                 }
                 return true;
             }
@@ -94,7 +92,7 @@ public class AddGroupDialog extends DialogFragment {
                 .setPositiveButton(R.string.positive_button_create, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        addGroup();
+                        editGroup();
                     }
                 })
                 .setNegativeButton(R.string.negative_button_cancel, new DialogInterface.OnClickListener() {
@@ -103,45 +101,24 @@ public class AddGroupDialog extends DialogFragment {
                         /**
                          * close the dialog
                          */
-                        AddGroupDialog.this.getDialog().cancel();
+                        EditGroupDialog.this.getDialog().cancel();
                     }
                 });
         return builder.create();
     }
 
-    /**
-     * add new Group
-     */
-
-    public void addGroup() {
-        String userEnteredName = addGroup.getText().toString();
+    public void editGroup() {
+        String userenteredtext = editGroupName.getText().toString();
         /**
-         * checks if text is empty
+         * check if empty or equal to the original  name
          */
-        if (!userEnteredName.equals("")) {
+        if (!userenteredtext.equals("") && userenteredtext != mGroupName) {
             /**
-             * creates firebase reference
+             * updates the firebase ref
              */
-            /* topicRef to maintain random id */
-            DatabaseReference groupref = gDatabaseReference.getRef().push();
-            final String groupId = groupref.getKey();
-
-            /**
-             * Set raw version of date to the ServerValue.TIMESTAMP value and save into
-             * timestampCreatedMap
-             */
-            HashMap<String, Object> timestampCreated = new HashMap<>();
-            timestampCreated.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
-
-            /* Build the topic list */
-            Items_forums newTopicList = new Items_forums(userEnteredName, mUsername, groupId, mUserEmail, timestampCreated);
-
-            groupref.setValue(newTopicList);
-
-            /* Close the dialog fragment */
-            AddGroupDialog.this.getDialog().cancel();
+            DatabaseReference topicRef = gDatabaseReference.child(groupID).child("topic_name");
+            topicRef.setValue(userenteredtext);
 
         }
-
     }
 }

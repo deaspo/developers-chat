@@ -1,7 +1,6 @@
 package adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +11,6 @@ import com.deaspostudios.devchats.R;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import ui.GroupActivity;
-
-import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 
 /**
  * Created by polyc on 30/01/2017.
@@ -42,8 +37,8 @@ public class RecyclerAdapterGroup extends RecyclerView.Adapter<RecyclerAdapterGr
     public void onBindViewHolder(final MyViewHolder holder, int position) {
 
         Items_forums itemsForums = list.get(position);
-        holder.itemName.setText(itemsForums.getName());
-        holder.creator.setText(itemsForums.getOwner());
+        holder.itemName.setText(itemsForums.getTopic_name());
+        holder.creator.setText(itemsForums.getCreated_by());
 
         //apply the glide libbrary
         //Glide.with(mContext).load(mlist.getThumbnail()).into(holder.thumbnail);
@@ -68,7 +63,7 @@ public class RecyclerAdapterGroup extends RecyclerView.Adapter<RecyclerAdapterGr
             super(view);
             itemName = (TextView) view.findViewById(R.id.text_view_list_name);
             creator = (TextView) view.findViewById(R.id.text_view_created_by);
-            view.setOnClickListener(new View.OnClickListener() {
+            /*view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     view.setOnClickListener(new View.OnClickListener() {
@@ -79,14 +74,14 @@ public class RecyclerAdapterGroup extends RecyclerView.Adapter<RecyclerAdapterGr
                                 if (selectedForum != null) {
                                     Intent intent = new Intent(mContext, GroupActivity.class);
                                     String forumId = selectedForum.getForum_id();
-                                    String forumName = selectedForum.getName();
+                                    String forumName = selectedForum.getTopic_name();
                                     String currentUserMail = mUserEmail;
                                     intent.putExtra("forumKey", forumId);
                                     intent.putExtra("forumName", forumName);
                                     intent.putExtra("usermail", currentUserMail);
-                                    /**
+                                    *//**
                                      * satrt activity
-                                     */
+             *//*
                                     mContext.startActivity(intent);
 
                                 }
@@ -94,8 +89,9 @@ public class RecyclerAdapterGroup extends RecyclerView.Adapter<RecyclerAdapterGr
                         }
                     });
                 }
-            });
+            });*/
         }
+
     }
 
 

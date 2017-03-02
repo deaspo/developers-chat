@@ -8,14 +8,14 @@
     android:paddingLeft="@dimen/activity_vertical_margin"
     android:paddingRight="@dimen/activity_vertical_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="ui.GroupActivity">
+    tools:context=".MainActivity">
 
 
-    <TextView
-        android:id="@+id/delete_group_dialog"
+    <EditText
+        android:id="@+id/edit_topic_dialog"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/dialog_message_are_you_sure_remove_group"
+        android:hint="@string/action_edit_topic_name"
         android:imeOptions="actionDone|flagNoExtractUi"
         android:inputType="text"
         android:textColor="@color/black"

@@ -18,8 +18,8 @@
     <string name="action_archive">Archive</string>
 
     <!-- Menu Items -->
-    <string name="action_edit_topic_name">Edit Topic name</string>
-    <string name="action_edit_group_name">Edit Group name</string>
+    <string name="action_edit_topic_name">New Topic name</string>
+    <string name="action_edit_group_name">New Group name</string>
 
 
     <!-- Edit and Add Group Dialogs -->

@@ -409,7 +409,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         query = query.toLowerCase();
         final List<Items_forums> filteredModelList = new ArrayList<>();
         for (Items_forums model : models) {
-            final String text = model.getName().toLowerCase();
+            final String text = model.getTopic_name().toLowerCase();
             if (text.contains(query)) {
                 filteredModelList.add(model);
             }
@@ -656,7 +656,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         Collections.sort(forum, new Comparator<Items_forums>() {
             @Override
             public int compare(Items_forums o1, Items_forums o2) {
-                return -o1.getName().compareTo(o2.getName());
+                return -o1.getTopic_name().compareTo(o2.getTopic_name());
             }
         });
         adapter.notifyDataSetChanged();
@@ -666,7 +666,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         Collections.sort(forum, new Comparator<Items_forums>() {
             @Override
             public int compare(Items_forums o1, Items_forums o2) {
-                return o1.getName().compareTo(o2.getName());
+                return o1.getTopic_name().compareTo(o2.getTopic_name());
             }
         });
         adapter.notifyDataSetChanged();

@@ -41,8 +41,8 @@ public class RecycleAdapterTopic extends RecyclerView.Adapter<RecycleAdapterTopi
     public void onBindViewHolder(final MyViewHolder holder, int position) {
 
         Items_forums itemsForums = list.get(position);
-        holder.itemName.setText(itemsForums.getName());
-        holder.creator.setText(itemsForums.getOwner());
+        holder.itemName.setText(itemsForums.getTopic_name());
+        holder.creator.setText(itemsForums.getCreated_by());
 
         //apply the glide libbrary
         //Glide.with(mContext).load(mlist.getThumbnail()).into(holder.thumbnail);
@@ -77,7 +77,7 @@ public class RecycleAdapterTopic extends RecyclerView.Adapter<RecycleAdapterTopi
                                 if (selectedForum != null) {
                                     Intent intent = new Intent(mContext, TopicActivity.class);
                                     String forumId = selectedForum.getForum_id();
-                                    String forumName = selectedForum.getName();
+                                    String forumName = selectedForum.getTopic_name();
                                     String currentUserMail = mUserEmail;
                                     intent.putExtra("forumKey", forumId);
                                     intent.putExtra("forumName", forumName);

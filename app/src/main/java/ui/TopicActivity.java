@@ -137,7 +137,7 @@ public class TopicActivity extends AppCompatActivity {
     }
 
     private boolean checkOwnership(Items_forums items_forums, String currentUserEmail) {
-        return (items_forums.getOwner() != null && items_forums.owner_email.equals(currentUserEmail));
+        return (items_forums.getCreated_by() != null && items_forums.owner_email.equals(currentUserEmail));
     }
 
     private void InitializeScreen() {
@@ -388,7 +388,7 @@ public class TopicActivity extends AppCompatActivity {
                 /* Calling invalidateOptionsMenu causes onCreateOptionsMenu to be called */
                 invalidateOptionsMenu();
                 /* Set title appropriately. */
-                setTitle(items_forums.getName());
+                setTitle(items_forums.getTopic_name());
             }
 
             @Override

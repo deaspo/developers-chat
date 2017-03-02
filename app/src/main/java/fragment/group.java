@@ -1,6 +1,7 @@
 package fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -22,8 +23,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.List;
 
 import Widgets.DividerItemDecoration;
+import Widgets.ItemClickSupport;
 import adapter.Items_forums;
 import adapter.RecyclerAdapterGroup;
+import ui.GroupActivity;
+
+import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -89,18 +94,16 @@ public class group extends Fragment implements SwipeRefreshLayout.OnRefreshListe
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
                     groups.add(items_forums);
+                    adapter.notifyDataSetChanged();
                 }
-
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                    Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
-                    groups.add(items_forums);
                 }
-
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
                     groups.remove(items_forums);
+                    adapter.notifyDataSetChanged();
                 }
                 @Override
                 public void onChildMoved(DataSnapshot dataSnapshot, String s) {
@@ -150,6 +153,29 @@ public class group extends Fragment implements SwipeRefreshLayout.OnRefreshListe
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+        //recyclerView.addOnItemTouchListener();
+        ItemClickSupport.addTo(recyclerView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
+            @Override
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                Items_forums selectedForum = groups.get(position);
+                if (selectedForum != null) {
+                    Intent intent = new Intent(getActivity(), GroupActivity.class);
+                    String forumId = selectedForum.getForum_id();
+                    String forumName = selectedForum.getTopic_name();
+                    String currentUserMail = mUserEmail;
+                    intent.putExtra("forumKey", forumId);
+                    intent.putExtra("forumName", forumName);
+                    intent.putExtra("usermail", currentUserMail);
+                    /**
+                     * satrt activity
+                     */
+                    startActivity(intent);
+
+                }
+            }
+
+        });
+
         recyclerView.setAdapter(adapter);
 
         swipeRefreshLayout.setOnRefreshListener(this);

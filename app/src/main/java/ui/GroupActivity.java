@@ -32,7 +32,6 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
@@ -48,6 +47,7 @@ import activity.UserType;
 import adapter.Items_forums;
 import adapter.Message;
 import adapter.MessageAdapter;
+import dialog.EditGroupDialog;
 import github.ankushsachdeva.emojicon.EmojiconEditText;
 import github.ankushsachdeva.emojicon.EmojiconGridView.OnEmojiconClickedListener;
 import github.ankushsachdeva.emojicon.EmojiconsPopup;
@@ -145,7 +145,7 @@ public class GroupActivity extends AppCompatActivity {
     }
 
     private boolean checkOwnership(Items_forums items_forums, String currentUserEmail) {
-        return (items_forums.getOwner() != null && items_forums.owner_email.equals(currentUserEmail));
+        return (items_forums.getCreated_by() != null && items_forums.owner_email.equals(currentUserEmail));
     }
 
     private void InitializeScreen() {
@@ -360,6 +360,9 @@ public class GroupActivity extends AppCompatActivity {
             case R.id.action_remove_group:
                 showWarning(this.getApplicationContext(), "Remove " + groupName + "?", "By deleting this group, all the conversations will also be deleted", true, true, -1, MainActivity.class);
                 return true;
+            case R.id.action_edit_group_name:
+                showEditGroupDialog();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -404,7 +407,7 @@ public class GroupActivity extends AppCompatActivity {
                 /* Calling invalidateOptionsMenu causes onCreateOptionsMenu to be called */
                 invalidateOptionsMenu();
                 /* Set title appropriately. */
-                setTitle(items_forums.getName());
+                setTitle(items_forums.getTopic_name());
             }
 
             @Override
@@ -511,47 +514,10 @@ public class GroupActivity extends AppCompatActivity {
 
     }
 
-    private void deleteGroup(final String groupName) {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(this.getApplicationContext());
-
-        dialog.setTitle("Deleting " + groupName)
-                .setIcon(R.drawable.ic_launcher)
-                .setMessage("Are you sure you  want to delete this group and all it's conversation?")
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialoginterface, int i) {
-                        dialoginterface.cancel();
-                    }
-                })
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialoginterface, int i) {
-                        Query query = currentForumRef.orderByValue().equalTo(groupName);
-                        /**
-                         * Delete the group
-                         */
-                        query.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.hasChildren()) {
-                                    DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
-                                    firstChild.getRef().removeValue();
-                                    //close the group
-                                    GroupActivity.this.finish();
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    }
-                });
-        //create the alert
-        AlertDialog alertDialog = dialog.create();
-
-        //show
-        alertDialog.show();
-
+    public void showEditGroupDialog() {
+        /* creates the instance of the Edit Dialog */
+        EditGroupDialog dialogEditGroup = EditGroupDialog.newInstance(groupName, groupId);
+        dialogEditGroup.show(GroupActivity.this.getFragmentManager(), "EditGroupDialog");
     }
 
     public static class AlertFragment extends DialogFragment {
