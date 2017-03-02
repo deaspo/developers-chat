@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
+    <uses-sdk android:minSdkVersion="8" />
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -51,6 +53,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.deaspostudios.devchats.MainActivity" />
         </activity>
+        <activity
+            android:name=".MyPreferenceActivity"
+            android:label="Preferences" />
         <activity
             android:name="ui.TopicActivity"
             android:icon="@drawable/ic_chat_black_24dp"

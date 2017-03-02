@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:key="username"
+        android:summary="Tap to change your user name"
+        android:title="Your Name"></EditTextPreference>
+
+    <EditTextPreference
+        android:key="userstatus"
+        android:summary="Tap to change your status"
+        android:title="Your Status"></EditTextPreference>
+
+    <PreferenceScreen
+        android:key="privacy"
+        android:persistent="false"
+        android:title="Privacy">
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="statusvisibility"
+            android:summary="This option if selected will allow other users to see your status."
+            android:title="Show/Hide your status" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="onlinevisibility"
+            android:summary="Allow people to know that you are online."
+            android:title="Online visibility" />
+
+    </PreferenceScreen>
+
+
+    <ListPreference
+        android:defaultValue="1"
+        android:entries="@array/listArray"
+        android:entryValues="@array/listValues"
+        android:key="downloadType"
+        android:summary="Select the kind of data that you would like to download"
+        android:title="Download Details" />
+
+    <Preference android:title="Visit the Developer's page">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="http://www.deaspostudios.com" />
+    </Preference>
+
+</PreferenceScreen>

@@ -1,11 +1,13 @@
 package ui;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -23,6 +25,7 @@ import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
 import android.widget.ProgressBar;
 
+import com.deaspostudios.devchats.MainActivity;
 import com.deaspostudios.devchats.R;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
@@ -355,7 +358,7 @@ public class GroupActivity extends AppCompatActivity {
          */
         switch (item.getItemId()) {
             case R.id.action_remove_group:
-                deleteGroup(groupId);
+                showWarning(this.getApplicationContext(), "Remove " + groupName + "?", "By deleting this group, all the conversations will also be deleted", true, true, -1, MainActivity.class);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -493,6 +496,21 @@ public class GroupActivity extends AppCompatActivity {
         }
     }
 
+    private void showWarning(Context context, String title, String message, boolean showCancel,
+                             boolean showOK, int iconID, Class<?> okClass) {
+        AlertFragment.context = context;
+        AlertFragment.iconID = iconID;
+        AlertFragment.title = title;
+        AlertFragment.message = message;
+        AlertFragment.showOK = showOK;
+        AlertFragment.showCancel = showCancel;
+        AlertFragment.okClass = okClass;
+
+        DialogFragment fragment = new AlertFragment();
+        fragment.show(getSupportFragmentManager(), "Dialog");
+
+    }
+
     private void deleteGroup(final String groupName) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this.getApplicationContext());
 
@@ -534,8 +552,50 @@ public class GroupActivity extends AppCompatActivity {
         //show
         alertDialog.show();
 
+    }
+
+    public static class AlertFragment extends DialogFragment {
+
+        public static Context context;
+        public static String message;
+        public static String title = null;
+        public static int iconID = -1;
+        public static int theme = R.style.AppTheme;
+        public static boolean showOK;
+        public static boolean showCancel;
+        public static Class<?> okClass = null;
+        public static int buttonPressed;
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+            // Use the Builder class to construct the dialog.  Use the
+            // form of the builder constructor that allows a theme to be set.
 
 
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), theme);
+
+            if (title != null) builder.setTitle(title);
+            if (iconID != -1) builder.setIcon(iconID);
+            builder.setMessage(message);
+            if (showOK && okClass != null) {
+                builder.setPositiveButton("Select this task", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Intent i = new Intent(context, okClass);
+                        startActivity(i);
+                    }
+                });
+            }
+            if (showCancel) {
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Default is to cancel the dialog window.
+                    }
+                });
+            }
+            // Create the AlertDialog object and return it
+            return builder.create();
+        }
 
     }
 }

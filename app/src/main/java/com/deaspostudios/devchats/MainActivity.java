@@ -319,9 +319,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                         drawer.closeDrawers();
                         break;
                     case R.id.nav_settings: /* need to have a settings activity */
-                        navItemIndex = 4;
-                        CURRENT_TAG = TAG_SETTINGS;
-                        break;
+                        startSettings();
+                        drawer.closeDrawers();
+                        return true;
                     case R.id.nav_about_us:
                         // launch new intent instead of loading fragment
                         startActivity(new Intent(MainActivity.this, AboutUs.class));
@@ -611,10 +611,25 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             case R.id.action_sort_groups:
                 sortGroups();
                 return true;
+            case R.id.action_setting:
+                startSettings();
             default:
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    public void startSettings() {
+        Intent intent = new Intent(this, MyPreferenceActivity.class);
+        intent.putExtra("username", Constants.USER_NAME);
+        intent.putExtra("userstatus", Constants.USER_STATUS);
+        intent.putExtra("statusvisibility", Constants.STATUS_VISIBLE);
+        intent.putExtra("onlinevisibility", Constants.USER_VISIBLE);
+
+        /**
+         * starts setting activity
+         */
+        startActivity(intent);
     }
 
     public void sortTopics() {

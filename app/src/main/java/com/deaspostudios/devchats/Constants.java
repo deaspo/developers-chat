@@ -32,5 +32,15 @@ public final class Constants {
     public static final String ORDER_BY_KEY = "orderByPushKey";
     public static final String ORDER_BY_OWNER_EMAIL = "orderByOwnerEmail";
 
+    /**
+     * Constants for Settings
+     */
+    public static final String USER_NAME = "USER_NAME";
+    public static final String USER_STATUS = "USER_STATUS";
+    public static final String STATUS_VISIBLE = "STATUS_VISIBLE";
+    public static final String USER_PIC = "USER_PIC";
+    public static final String USER_BG = "USER_BG";
+    public static final String USER_VISIBLE = "USER_VISIBLE";
+
 
 }

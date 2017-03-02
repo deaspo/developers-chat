@@ -216,7 +216,6 @@ public class group extends Fragment implements SwipeRefreshLayout.OnRefreshListe
     public void onPause() {
         super.onPause();
         detachGroupDatabaseListener();
-        groups.clear();
     }
 
     @Override
