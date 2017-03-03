@@ -487,7 +487,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         chatsUsersDb = chatsFirebaseDatabase.getReference().child("chats").child(mUID).child("conversations");
         System.out.println("Logged in user " + username);
         if (mUsername != null) {
-            attachChatUsersDb();
+            //attachChatUsersDb();
             attachUserDatabaseListener();
         }
 

@@ -181,7 +181,7 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
             public void onCancelled(DatabaseError databaseError) {
             }
         });
-        usersDbRef.addChildEventListener(usersChildEventListener);
+        //usersDbRef.addChildEventListener(usersChildEventListener);
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setRefreshing(false);
         }
@@ -243,7 +243,7 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
                                     @Override
                                     public void run() {
                                         swipeRefreshLayout.setRefreshing(true);
-                                        attachChatUsersDb();
+                                        //attachChatUsersDb();
                                     }
                                 }
         );
@@ -283,36 +283,31 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
     @Override
     public void onStart() {
         super.onStart();
+        attachChatUsersDb();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (chattingAdapter.objects != null) {
-            chattingAdapter.objects.clear();
-        }
         attachChatUsersDb();
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (chattingAdapter != null) {
-            chattingUsers.clear();
-            chattingAdapter.notifyDataSetChanged();
-        }
         deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
 
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (chattingAdapter != null) {
-            chattingUsers.clear();
-            chattingAdapter.notifyDataSetChanged();
-        }
         deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
     }
 
     @Override
