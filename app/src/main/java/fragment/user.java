@@ -110,7 +110,7 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
                         if (Boolean.valueOf(user.getUser_visible())) {
                             onlineUsers.add(user);
                         }
-                        usersAdapter.notifyDataSetChanged();
+                        //usersAdapter.notifyDataSetChanged();
                     }
                 }
 
