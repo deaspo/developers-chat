@@ -11,6 +11,8 @@ public class User {
     private String uid;
     private String ppic;
     private String status;
+    private String status_visible;
+    private String user_visible;
 
 
     /**
@@ -27,12 +29,14 @@ public class User {
      * @param email
      * @param uid
      */
-    public User(String name, String email, String uid, String last_active, String ppic, String status) {
+    public User(String name, String email, String uid, String last_active, String ppic, String status, String status_visible, String user_visible) {
         this.name = name;
         this.email = email;
         this.uid = uid;
         this.ppic = ppic;
         this.status = status;
+        this.status_visible = status_visible;
+        this.user_visible = user_visible;
         this.last_active = last_active;
     }
 
@@ -78,6 +82,26 @@ public class User {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getStatus_visible() {
+        return status_visible;
+    }
+
+    public void setStatus_visible(String status_visible) {
+        this.status_visible = status_visible;
+    }
+
+    public String getUser_visible() {
+        return user_visible;
+    }
+
+    public void setUser_visible(String user_visible) {
+        this.user_visible = user_visible;
+    }
+
+    public String getLast_active() {
+        return last_active;
     }
 
     public void setLast_active(String last_active) {

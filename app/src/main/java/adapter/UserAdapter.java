@@ -58,7 +58,15 @@ public class UserAdapter extends ArrayAdapter<User> {
             user_uid.setText(user.getUid());
         }
 
-        user_status.setText(user.getStatus());
+        /**
+         * set the status visibilty
+         */
+        if (Boolean.valueOf(user.getStatus_visible())) {
+            user_status.setVisibility(View.VISIBLE);
+            user_status.setText(user.getStatus());
+        } else {
+            user_status.setVisibility(View.GONE);
+        }
         /**
          * set the profile picture
          */
