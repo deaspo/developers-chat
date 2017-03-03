@@ -406,10 +406,26 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public boolean onQueryTextChange(String newText) {
         final List<Items_forums> filteredItems = filter(topics, newText);
         final List<Items_forums> filteredGroup = filter(groups, newText);
+        final List<User> filteredUser = filter_user(onlineUsers, newText);
+        final List<User> filteredFav = filter_user(chattingUsers, newText);
 
         topicsAdapter.setFilter(filteredItems);
         adapter.setFilter(filteredGroup);
+        usersAdapter.setFilter(filteredUser);
+        chattingAdapter.setFilter(filteredFav);
         return true;
+    }
+
+    private List<User> filter_user(List<User> models, String query) {
+        query = query.toLowerCase();
+        final List<User> filteredModelList = new ArrayList<>();
+        for (User model : models) {
+            final String text = model.getName().toLowerCase();
+            if (text.contains(query)) {
+                filteredModelList.add(model);
+            }
+        }
+        return filteredModelList;
     }
 
     private List<Items_forums> filter(List<Items_forums> models, String query) {
@@ -513,7 +529,16 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public boolean onCreateOptionsMenu(Menu menu) {
 
         if (pageItemIndex == 2) {
-            getMenuInflater().inflate(R.menu.main, menu);
+            getMenuInflater().inflate(R.menu.main_user, menu);
+            getMenuInflater().inflate(R.menu.main_user, menu);
+            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            searchMenuItem = menu.findItem(R.id.app_bar_search_fav);
+            searchView = (SearchView) searchMenuItem.getActionView();
+
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setSubmitButtonEnabled(true);
+
+            searchView.setOnQueryTextListener(this);
         } else if (pageItemIndex == 0) {
             getMenuInflater().inflate(R.menu.menu_groups, menu);
             SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -536,10 +561,19 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             searchView.setOnQueryTextListener(this);
 
         } else if (pageItemIndex == 3) {
-            getMenuInflater().inflate(R.menu.main, menu);
+            getMenuInflater().inflate(R.menu.main_user, menu);
+            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            searchMenuItem = menu.findItem(R.id.app_bar_search_user);
+            searchView = (SearchView) searchMenuItem.getActionView();
+
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setSubmitButtonEnabled(true);
+
+            searchView.setOnQueryTextListener(this);
         }
         return true;
     }
+
 
     private void setViewPager() {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

@@ -243,7 +243,7 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
                                     @Override
                                     public void run() {
                                         swipeRefreshLayout.setRefreshing(true);
-                                        //attachChatUsersDb();
+                                        attachChatUsersDb();
                                     }
                                 }
         );
