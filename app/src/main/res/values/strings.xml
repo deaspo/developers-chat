@@ -6,8 +6,8 @@
     <string name="NoRecent">No recent</string>
     <string name="action_setting">Settings</string>
     <string name="action_refresh">Refresh</string>
-    <string name="action_refresh_group">Refresh</string>
-    <string name="action_refresh_topic">Refresh</string>
+    <string name="action_refresh_group">Refresh View</string>
+    <string name="action_refresh_topic">Refresh View</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_chit_chat">Chat</string>
@@ -21,8 +21,8 @@
     <string name="action_archive">Archive</string>
 
     <!-- Menu Items -->
-    <string name="action_edit_topic_name">New Topic name</string>
-    <string name="action_edit_group_name">New Group name</string>
+    <string name="action_edit_topic_name">Edit Topic name</string>
+    <string name="action_edit_group_name">Edit Group name</string>
 
 
     <!-- Edit and Add Group Dialogs -->

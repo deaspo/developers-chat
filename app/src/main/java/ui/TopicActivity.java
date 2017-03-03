@@ -370,10 +370,10 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
          * action on menu item selected
          */
         switch (item.getItemId()) {
-            case R.id.action_remove_group:
+            case R.id.action_remove_topic:
                 showWarning(this.getApplicationContext(), "Remove " + topicName + "?", "By deleting this group, all the conversations will also be deleted", true, true, -1, MainActivity.class);
                 return true;
-            case R.id.action_edit_group_name:
+            case R.id.action_edit_topic_name:
                 showEditGTopicDialog();
                 return true;
             case R.id.action_refresh_topic:
