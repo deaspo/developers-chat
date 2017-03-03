@@ -5,12 +5,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
 
 import com.deaspostudios.devchats.R;
 import com.google.firebase.database.ChildEventListener;
@@ -19,11 +20,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.Comparator;
 import java.util.List;
 
-import adapter.ForumsAdapter;
+import Widgets.DividerItemDecoration;
+import Widgets.ItemClickSupport;
 import adapter.Items_forums;
+import adapter.RecyclerAdapterGroup;
 import ui.GroupActivity;
 
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
@@ -36,26 +38,28 @@ import static com.deaspostudios.devchats.MainActivity.mUserEmail;
  * Use the {@link group#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class group extends Fragment {
+public class group extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    public static List<Items_forums> groups;
-    //adapter for groups
-    public static ForumsAdapter groupsAdapter;
     //firebase database instances
     public static FirebaseDatabase gFirebaseDatabase;
     public static DatabaseReference gDatabaseReference;
+    //adapter for groups
+    public static List<Items_forums> groups;
+    public static RecyclerAdapterGroup adapter;
     private static ChildEventListener gChildEventListener;
-    private ListView mMessageListView;
-    private ProgressBar mProgressBar;
+    private static SwipeRefreshLayout swipeRefreshLayout;
+    //
+    private RecyclerView recyclerView;
+    //
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
     private OnFragmentInteractionListener mListener;
+
 
     public group() {
         // Required empty public constructor
@@ -80,37 +84,39 @@ public class group extends Fragment {
     }
 
     public static void attachGroupDatabaseListener() {
+        // showing refresh animation before making http call
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
         if (gChildEventListener == null) {
             gChildEventListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
-                    groupsAdapter.add(items_forums);
-                    groupsAdapter.sort(new Comparator<Items_forums>() {
-                        @Override
-                        public int compare(Items_forums o1, Items_forums o2) {
-                            return o1.getName().compareTo(o2.getName());
-                        }
-                    });
+                    groups.add(items_forums);
+                    adapter.notifyDataSetChanged();
                 }
-
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 }
-
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
+                    groups.remove(items_forums);
+                    adapter.notifyDataSetChanged();
                 }
-
                 @Override
                 public void onChildMoved(DataSnapshot dataSnapshot, String s) {
                 }
-
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                 }
             };
             gDatabaseReference.addChildEventListener(gChildEventListener);
+        }
+        adapter.notifyDataSetChanged();
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
         }
 
     }
@@ -139,38 +145,53 @@ public class group extends Fragment {
         View view = inflater.inflate(R.layout.fragment_group, container, false);
         getActivity().getWindow().setBackgroundDrawable(getResources().getDrawable(R.drawable.background));
 
-        //initializes
-        mProgressBar = (ProgressBar) view.findViewById(R.id.groupProgressBar);
-        mMessageListView = (ListView) view.findViewById(R.id.groupListView);
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_layout);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
 
-        mMessageListView.setAdapter(groupsAdapter);
-
-        // Initialize progress bar
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-
-        mMessageListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        //mMessageListView.setAdapter(groupsAdapter);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        //recyclerView.addOnItemTouchListener();
+        ItemClickSupport.addTo(recyclerView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                /**
-                 * implementing the forums adapter
-                 */
-                Items_forums selectedforum = groupsAdapter.getItem(i);
-                if (selectedforum != null) {
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                Items_forums selectedForum = groups.get(position);
+                if (selectedForum != null) {
                     Intent intent = new Intent(getActivity(), GroupActivity.class);
-                    /*
-                      * Gets the right data to pass
-                     */
-                    String forumId = selectedforum.getForum_id();
+                    String forumId = selectedForum.getForum_id();
+                    String forumName = selectedForum.getTopic_name();
                     String currentUserMail = mUserEmail;
                     intent.putExtra("forumKey", forumId);
+                    intent.putExtra("forumName", forumName);
                     intent.putExtra("usermail", currentUserMail);
                     /**
-                     * start the activity with details of the list
+                     * satrt activity
                      */
                     startActivity(intent);
+
                 }
             }
+
         });
+
+        recyclerView.setAdapter(adapter);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                        attachGroupDatabaseListener();
+                                    }
+                                }
+        );
 
         return view;
     }
@@ -202,6 +223,7 @@ public class group extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        attachGroupDatabaseListener();
     }
 
     @Override
@@ -214,16 +236,20 @@ public class group extends Fragment {
     public void onStop() {
         super.onStop();
         detachGroupDatabaseListener();
-        groupsAdapter.clear();
+        groups.clear();
     }
 
     @Override
     public void onPause() {
         super.onPause();
         detachGroupDatabaseListener();
-        groupsAdapter.clear();
+        groups.clear();
     }
 
+    @Override
+    public void onRefresh() {
+        attachGroupDatabaseListener();
+    }
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -238,4 +264,5 @@ public class group extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
 }

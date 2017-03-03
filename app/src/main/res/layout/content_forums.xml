@@ -4,21 +4,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-    <ListView
-        android:id="@+id/forum_list_view"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout_forum"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_above="@+id/bottomlayout"
         android:layout_marginBottom="4dp"
-        android:layout_marginTop="60dp"
-        android:clipToPadding="false"
-        android:divider="@drawable/chat_divider"
-        android:paddingBottom="4dp"
-        android:paddingTop="8dp"
-        android:scrollbarStyle="outsideOverlay"
-        android:stackFromBottom="false"
-        android:transcriptMode="normal" />
+        android:layout_marginTop="60dp">
+
+        <ListView
+            android:id="@+id/forum_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:divider="@drawable/chat_divider"
+            android:paddingBottom="4dp"
+            android:paddingTop="8dp"
+            android:scrollbarStyle="outsideOverlay"
+            android:stackFromBottom="false"
+            android:transcriptMode="normal" />
+
+    </android.support.v4.widget.SwipeRefreshLayout>
+
 
     <LinearLayout
         android:id="@+id/bottomlayout"
@@ -79,14 +86,5 @@
             android:src="@drawable/input_send" />
 
     </LinearLayout>
-
-
-    <ProgressBar
-        android:id="@+id/forum_progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true" />
 
 </RelativeLayout>

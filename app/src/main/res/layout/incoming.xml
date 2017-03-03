@@ -26,15 +26,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingRight="6dp"
-                    android:text="Other user"
-                    android:textSize="16sp"
-                    android:textStyle="normal|bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingRight="6dp"
-                    android:text="wrote:"
+                    android:text="You"
                     android:textSize="16sp"
                     android:textStyle="normal|bold" />
 
@@ -52,16 +44,22 @@
                     android:layout_height="wrap_content"
                     android:autoLink="web"
                     android:paddingRight="6dp"
-                    android:text="Received message." />
+                    android:text="Sent message." />
 
-                <LinearLayout
-                    android:id="@+id/ppic"
-                    android:layout_width="wrap_content"
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ppic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/sentM">
+
+                <ImageView
+                    android:id="@+id/photoUser2"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="fill_horizontal|center"
-                    android:orientation="vertical">
-
-                </LinearLayout>
+                    android:layout_weight="1" />
 
             </LinearLayout>
 
@@ -69,7 +67,7 @@
                 android:id="@+id/msgContents"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/sentM"
+                android:layout_below="@id/ppic"
                 android:layout_gravity="bottom|right"
                 android:orientation="horizontal"
                 android:paddingRight="5dp">
@@ -82,7 +80,7 @@
                     android:text="11:15 PM" />
 
                 <ImageView
-                    android:id="@+id/user_reply_status"
+                    android:id="@+id/user_sent_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
@@ -93,12 +91,6 @@
 
 
         </RelativeLayout>
-
-        <ImageView
-            android:id="@+id/photoUser2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
 
 
     </FrameLayout>

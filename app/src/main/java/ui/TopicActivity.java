@@ -1,10 +1,15 @@
 package ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -20,8 +25,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
-import android.widget.ProgressBar;
 
+import com.deaspostudios.devchats.MainActivity;
 import com.deaspostudios.devchats.R;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
@@ -29,6 +34,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -39,9 +45,10 @@ import java.util.Date;
 
 import activity.Status;
 import activity.UserType;
-import adapter.Forums_Msg_Adapter;
 import adapter.Items_forums;
 import adapter.Message;
+import adapter.MessageAdapter;
+import dialog.EditTopicDialog;
 import github.ankushsachdeva.emojicon.EmojiconEditText;
 import github.ankushsachdeva.emojicon.EmojiconGridView.OnEmojiconClickedListener;
 import github.ankushsachdeva.emojicon.EmojiconsPopup;
@@ -49,6 +56,8 @@ import github.ankushsachdeva.emojicon.EmojiconsPopup.OnEmojiconBackspaceClickedL
 import github.ankushsachdeva.emojicon.EmojiconsPopup.OnSoftKeyboardOpenCloseListener;
 import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
+import static com.deaspostudios.devchats.MainActivity.escapeSpace;
+import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
 import static fragment.topic.tDatabaseReference;
 
@@ -56,15 +65,16 @@ import static fragment.topic.tDatabaseReference;
  * emjicons
  */
 
-public class TopicActivity extends AppCompatActivity {
+public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    private static String topicId;
+    private static SwipeRefreshLayout swipeRefreshLayout;
     private ListView forumListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
-    private ProgressBar forumPb;
     private String userMail;
-    private String topicId;
+    private String topicName;
     private DatabaseReference currentForumRef, currentForumMessages;
     private ValueEventListener currentForumRefListener;
     private ChildEventListener CurrentMessageRefListener;
@@ -74,9 +84,8 @@ public class TopicActivity extends AppCompatActivity {
     /**
      * using the  new adapter
      */
-    private Forums_Msg_Adapter messageAdapter;
+    private MessageAdapter messageAdapter;
     private ArrayList<Message> messageList;
-
     private boolean currentUserIsCreator = false;
 
     @Override
@@ -94,6 +103,7 @@ public class TopicActivity extends AppCompatActivity {
         if (bundle != null) {
             topicId = bundle.getString("forumKey");
             userMail = bundle.getString("usermail");
+            topicName = bundle.getString("forumName");
 
             if (topicId == null) {
                 finish();//stop is no valid reference is passed
@@ -125,14 +135,14 @@ public class TopicActivity extends AppCompatActivity {
          * initialize the adapter
          */
         messageList = new ArrayList<>();
-        messageAdapter = new Forums_Msg_Adapter(this, R.layout.outgoing, messageList);
+        messageAdapter = new MessageAdapter(messageList, this);
 
         forumListView.setAdapter(messageAdapter);
 
     }
 
     private boolean checkOwnership(Items_forums items_forums, String currentUserEmail) {
-        return (items_forums.getOwner() != null && items_forums.owner_email.equals(currentUserEmail));
+        return (items_forums.getCreated_by() != null && items_forums.owner_email.equals(currentUserEmail));
     }
 
     private void InitializeScreen() {
@@ -142,7 +152,23 @@ public class TopicActivity extends AppCompatActivity {
         final View rootView = findViewById(R.id.root_topic);
         photopicker = (ImageButton) findViewById(R.id.forum_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_forum);
-        forumPb = (ProgressBar) findViewById(R.id.forum_progressBar);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout_forum);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                        attachMessageListener();
+                                    }
+                                }
+        );
 
         // Give the topmost view of your activity layout hierarchy. This will be used to measure soft keyboard height
         final EmojiconsPopup popup = new EmojiconsPopup(rootView, this);
@@ -245,7 +271,6 @@ public class TopicActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        forumPb.setVisibility(ProgressBar.INVISIBLE);
 
         /**
          * button click listeners
@@ -298,6 +323,7 @@ public class TopicActivity extends AppCompatActivity {
                 message.setMessageStatus(Status.SENT);
                 message.setText(emojiconEditText.getText().toString());
                 message.setUserName(mUsername);
+                message.setUserId(mUID);
                 message.setUserType(UserType.SELF);
                 message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
                 if (messageAdapter != null)
@@ -305,6 +331,12 @@ public class TopicActivity extends AppCompatActivity {
                 currentForumMessages.push().setValue(message);
                 // clear the input box
                 emojiconEditText.setText("");
+                /**
+                 * subcribes the sender to the topic group
+                 */
+                //start subcribe
+                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicName));
+                // [END subscribe_topics]
             }
         });
 
@@ -330,6 +362,26 @@ public class TopicActivity extends AppCompatActivity {
 
 
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        /**
+         * action on menu item selected
+         */
+        switch (item.getItemId()) {
+            case R.id.action_remove_group:
+                showWarning(this.getApplicationContext(), "Remove " + topicName + "?", "By deleting this group, all the conversations will also be deleted", true, true, -1, MainActivity.class);
+                return true;
+            case R.id.action_edit_group_name:
+                showEditGTopicDialog();
+                return true;
+            case R.id.action_refresh_topic:
+                attachMessageListener();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -376,7 +428,7 @@ public class TopicActivity extends AppCompatActivity {
                 /* Calling invalidateOptionsMenu causes onCreateOptionsMenu to be called */
                 invalidateOptionsMenu();
                 /* Set title appropriately. */
-                setTitle(items_forums.getName());
+                setTitle(items_forums.getTopic_name());
             }
 
             @Override
@@ -387,11 +439,18 @@ public class TopicActivity extends AppCompatActivity {
     }
 
     private void attachMessageListener() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
+
         CurrentMessageRefListener = currentForumMessages.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Message message = dataSnapshot.getValue(Message.class);
-                messageAdapter.add(message);
+                messageList.add(message);
+                if (messageAdapter != null)
+                    messageAdapter.notifyDataSetChanged();
+
             }
 
             @Override
@@ -410,6 +469,12 @@ public class TopicActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+
+        //currentForumMessages.addChildEventListener(CurrentMessageRefListener);
+
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     private void detachMessageListener() {
@@ -441,6 +506,7 @@ public class TopicActivity extends AppCompatActivity {
                     message.setMessageStatus(Status.SENT);
                     message.setText(null);
                     message.setUserName(mUsername);
+                    message.setUserId(mUID);
                     message.setPhotoUrl(downloadUri.toString());
                     message.setUserType(UserType.SELF);
                     message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
@@ -471,5 +537,77 @@ public class TopicActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         finish();
+    }
+
+    public void showEditGTopicDialog() {
+        /* creates the instance of the Edit Dialog */
+        EditTopicDialog dialogEditTopic = EditTopicDialog.newInstance(topicName, topicId);
+        dialogEditTopic.show(TopicActivity.this.getFragmentManager(), "EditTopicDialog");
+    }
+
+    private void showWarning(Context context, String title, String message, boolean showCancel,
+                             boolean showOK, int iconID, Class<?> okClass) {
+        AlertFragment.context = context;
+        AlertFragment.iconID = iconID;
+        AlertFragment.title = title;
+        AlertFragment.message = message;
+        AlertFragment.showOK = showOK;
+        AlertFragment.showCancel = showCancel;
+        AlertFragment.okClass = okClass;
+
+        DialogFragment fragment = new AlertFragment();
+        fragment.show(getSupportFragmentManager(), "Dialog");
+
+    }
+
+    @Override
+    public void onRefresh() {
+
+    }
+
+    public static class AlertFragment extends DialogFragment {
+
+        public static Context context;
+        public static String message;
+        public static String title = null;
+        public static int iconID = -1;
+        public static int theme = R.style.AppTheme;
+        public static boolean showOK;
+        public static boolean showCancel;
+        public static Class<?> okClass = null;
+        public static int buttonPressed;
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+            // Use the Builder class to construct the dialog.  Use the
+            // form of the builder constructor that allows a theme to be set.
+
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), theme);
+
+            if (title != null) builder.setTitle(title);
+            if (iconID != -1) builder.setIcon(iconID);
+            builder.setMessage(message);
+            if (showOK && okClass != null) {
+                builder.setPositiveButton("Select this task", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        tDatabaseReference.child(topicId).removeValue();
+                        Intent i = new Intent(context, okClass);
+                        startActivity(i);
+                    }
+                });
+            }
+            if (showCancel) {
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Default is to cancel the dialog window.
+                    }
+                });
+            }
+            // Create the AlertDialog object and return it
+            return builder.create();
+        }
+
     }
 }
