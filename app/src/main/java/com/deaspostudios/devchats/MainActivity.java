@@ -6,10 +6,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -100,14 +102,17 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
     public static String mUsername, mUserphoto, mUserEmail;
+    public static String mVisible, mStatusVisble;
     public static DatabaseReference usersDbRef;
     public static ChildEventListener usersChildEventListener;
     public static String mUID;
     public static String mEncodedEmail;
     public static String mProfile;
+    public static String mStatus;
     // index to identify current nav menu item
     public static int navItemIndex = 0;
     public static String CURRENT_TAG = TAG_CHAT;
+    public static StorageReference storageReference, imageRef;
     /**
      * to save db offline when there is no internet connection
      */
@@ -117,8 +122,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private Toolbar toolbar;
     private TabLayout tabLayout;
     private ViewPager viewPager;
-
-    private StorageReference storageReference, imageRef;
     //Firebase auth
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
@@ -274,6 +277,10 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             }
         };
         CheckConnection connection = new CheckConnection();
+        /**
+         * sets the initial preference values
+         */
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         this.registerReceiver(connection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
@@ -462,18 +469,17 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             mUsername = username;
         }
         mUserEmail = useremail;
-        mProfile = imageRef.toString();
-        /*imageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                mProfile = uri.toString();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
+        /**
+         * setting the preference values
+         */
 
-            }
-        });*/
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
+        if (mStatusVisble == null || mVisible == null) {
+            mStatusVisble = String.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
+            mVisible = String.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
+        }
+        setDefaults();
         addUser(username, useremail, uid);
         setUsername(mUsername, useremail, uid);
         //chats
@@ -486,6 +492,11 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         }
 
 
+    }
+
+    private void setDefaults() {
+        Constants.USER_NAME = mUsername;
+        Constants.USER_STATUS = mStatus;
     }
 
     private void OnSignedOutCleanup() {
@@ -591,7 +602,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     private void addUser(String mUsername, String mEncodedEmail, String uUid) {
         mUID = uUid;
-        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile);
+        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus);
         usersDbRef.child(uUid).setValue(user);
 
         /*chatsFirebaseDatabase =FirebaseDatabase.getInstance();
@@ -767,5 +778,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             }
         }
     }
+
 
 }

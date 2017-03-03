@@ -1,10 +1,15 @@
 package ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -20,8 +25,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
-import android.widget.ProgressBar;
 
+import com.deaspostudios.devchats.MainActivity;
 import com.deaspostudios.devchats.R;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
@@ -43,6 +48,7 @@ import activity.UserType;
 import adapter.Items_forums;
 import adapter.Message;
 import adapter.MessageAdapter;
+import dialog.EditTopicDialog;
 import github.ankushsachdeva.emojicon.EmojiconEditText;
 import github.ankushsachdeva.emojicon.EmojiconGridView.OnEmojiconClickedListener;
 import github.ankushsachdeva.emojicon.EmojiconsPopup;
@@ -59,15 +65,15 @@ import static fragment.topic.tDatabaseReference;
  * emjicons
  */
 
-public class TopicActivity extends AppCompatActivity {
+public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    private static String topicId;
+    private static SwipeRefreshLayout swipeRefreshLayout;
     private ListView forumListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
-    private ProgressBar forumPb;
     private String userMail;
-    private String topicId;
     private String topicName;
     private DatabaseReference currentForumRef, currentForumMessages;
     private ValueEventListener currentForumRefListener;
@@ -80,7 +86,6 @@ public class TopicActivity extends AppCompatActivity {
      */
     private MessageAdapter messageAdapter;
     private ArrayList<Message> messageList;
-
     private boolean currentUserIsCreator = false;
 
     @Override
@@ -147,7 +152,23 @@ public class TopicActivity extends AppCompatActivity {
         final View rootView = findViewById(R.id.root_topic);
         photopicker = (ImageButton) findViewById(R.id.forum_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_forum);
-        forumPb = (ProgressBar) findViewById(R.id.forum_progressBar);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout_forum);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                        attachMessageListener();
+                                    }
+                                }
+        );
 
         // Give the topmost view of your activity layout hierarchy. This will be used to measure soft keyboard height
         final EmojiconsPopup popup = new EmojiconsPopup(rootView, this);
@@ -250,7 +271,6 @@ public class TopicActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        forumPb.setVisibility(ProgressBar.INVISIBLE);
 
         /**
          * button click listeners
@@ -345,6 +365,26 @@ public class TopicActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        /**
+         * action on menu item selected
+         */
+        switch (item.getItemId()) {
+            case R.id.action_remove_group:
+                showWarning(this.getApplicationContext(), "Remove " + topicName + "?", "By deleting this group, all the conversations will also be deleted", true, true, -1, MainActivity.class);
+                return true;
+            case R.id.action_edit_group_name:
+                showEditGTopicDialog();
+                return true;
+            case R.id.action_refresh_topic:
+                attachMessageListener();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
     }
@@ -399,6 +439,10 @@ public class TopicActivity extends AppCompatActivity {
     }
 
     private void attachMessageListener() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
+
         CurrentMessageRefListener = currentForumMessages.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -425,6 +469,12 @@ public class TopicActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+
+        //currentForumMessages.addChildEventListener(CurrentMessageRefListener);
+
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     private void detachMessageListener() {
@@ -487,5 +537,77 @@ public class TopicActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         finish();
+    }
+
+    public void showEditGTopicDialog() {
+        /* creates the instance of the Edit Dialog */
+        EditTopicDialog dialogEditTopic = EditTopicDialog.newInstance(topicName, topicId);
+        dialogEditTopic.show(TopicActivity.this.getFragmentManager(), "EditTopicDialog");
+    }
+
+    private void showWarning(Context context, String title, String message, boolean showCancel,
+                             boolean showOK, int iconID, Class<?> okClass) {
+        AlertFragment.context = context;
+        AlertFragment.iconID = iconID;
+        AlertFragment.title = title;
+        AlertFragment.message = message;
+        AlertFragment.showOK = showOK;
+        AlertFragment.showCancel = showCancel;
+        AlertFragment.okClass = okClass;
+
+        DialogFragment fragment = new AlertFragment();
+        fragment.show(getSupportFragmentManager(), "Dialog");
+
+    }
+
+    @Override
+    public void onRefresh() {
+
+    }
+
+    public static class AlertFragment extends DialogFragment {
+
+        public static Context context;
+        public static String message;
+        public static String title = null;
+        public static int iconID = -1;
+        public static int theme = R.style.AppTheme;
+        public static boolean showOK;
+        public static boolean showCancel;
+        public static Class<?> okClass = null;
+        public static int buttonPressed;
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+
+            // Use the Builder class to construct the dialog.  Use the
+            // form of the builder constructor that allows a theme to be set.
+
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), theme);
+
+            if (title != null) builder.setTitle(title);
+            if (iconID != -1) builder.setIcon(iconID);
+            builder.setMessage(message);
+            if (showOK && okClass != null) {
+                builder.setPositiveButton("Select this task", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        tDatabaseReference.child(topicId).removeValue();
+                        Intent i = new Intent(context, okClass);
+                        startActivity(i);
+                    }
+                });
+            }
+            if (showCancel) {
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Default is to cancel the dialog window.
+                    }
+                });
+            }
+            // Create the AlertDialog object and return it
+            return builder.create();
+        }
+
     }
 }

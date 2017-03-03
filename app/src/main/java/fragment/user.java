@@ -30,6 +30,7 @@ import adapter.UserAdapter;
 import ui.Chat;
 
 import static com.deaspostudios.devchats.MainActivity.mProfile;
+import static com.deaspostudios.devchats.MainActivity.mStatus;
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
 
@@ -139,7 +140,7 @@ public class user extends Fragment {
     }
 
     public static void setUsername(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile);
+        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).setValue(user_logged);
         }
@@ -148,7 +149,7 @@ public class user extends Fragment {
     }
 
     public static void removeUserName(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile);
+        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).removeValue();
         }

@@ -9,7 +9,7 @@
         android:orderInCategory="100"
         android:title="@string/action_edit_topic_name" />
     <item
-        android:id="@+id/action_refresh"
+        android:id="@+id/action_refresh_topic"
         android:orderInCategory="100"
         android:title="@string/action_refresh_topic"
         android:visible="true"

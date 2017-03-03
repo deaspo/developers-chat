@@ -10,6 +10,7 @@ public class User {
     private String email;
     private String uid;
     private String ppic;
+    private String status;
 
 
     /**
@@ -26,11 +27,12 @@ public class User {
      * @param email
      * @param uid
      */
-    public User(String name, String email, String uid, String last_active, String ppic) {
+    public User(String name, String email, String uid, String last_active, String ppic, String status) {
         this.name = name;
         this.email = email;
         this.uid = uid;
         this.ppic = ppic;
+        this.status = status;
         this.last_active = last_active;
     }
 
@@ -68,6 +70,14 @@ public class User {
 
     public void setPpic(String ppic) {
         this.ppic = ppic;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setLast_active(String last_active) {

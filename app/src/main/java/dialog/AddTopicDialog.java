@@ -127,8 +127,6 @@ public class AddTopicDialog extends DialogFragment {
             DatabaseReference topicref = tDatabaseReference.getRef().push();
             final String topicId = topicref.getKey();
 
-            /* Hashmap for data uptodate */
-            HashMap<String, Object> updateTopicListData = new HashMap<>();
             /**
              * Set raw version of date to the ServerValue.TIMESTAMP value and save into
              * timestampCreatedMap

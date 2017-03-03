@@ -26,6 +26,7 @@ public final class Constants {
     public static final String KEY_PREF_SORT_ORDER_LISTS = "PERF_SORT_ORDER_LISTS";
 
 
+
     /**
      * Constant for sorting
      */
@@ -35,12 +36,16 @@ public final class Constants {
     /**
      * Constants for Settings
      */
-    public static final String USER_NAME = "USER_NAME";
-    public static final String USER_STATUS = "USER_STATUS";
-    public static final String STATUS_VISIBLE = "STATUS_VISIBLE";
-    public static final String USER_PIC = "USER_PIC";
-    public static final String USER_BG = "USER_BG";
-    public static final String USER_VISIBLE = "USER_VISIBLE";
+    public static String USER_NAME = "USER_NAME";
+    public static String USER_STATUS = "Hey there am also a developer!";
+    public static String STATUS_VISIBLE = "true";
+    public static String USER_PIC = "USER_PIC";
+    public static String USER_BG = "USER_BG";
+    public static String USER_VISIBLE = "true";
+
+    /**
+     *
+     */
 
 
 }

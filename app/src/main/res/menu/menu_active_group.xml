@@ -8,7 +8,7 @@
         android:orderInCategory="100"
         android:title="@string/action_edit_group_name" />
     <item
-        android:id="@+id/action_refresh"
+        android:id="@+id/action_refresh_group"
         android:orderInCategory="100"
         android:title="@string/action_refresh_group"
         android:visible="true"

@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -23,7 +24,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
-import android.widget.ProgressBar;
 
 import com.deaspostudios.devchats.MainActivity;
 import com.deaspostudios.devchats.R;
@@ -64,29 +64,27 @@ import static fragment.group.gDatabaseReference;
  * emjicons
  */
 
-public class GroupActivity extends AppCompatActivity {
+public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private static final int RC_PHOTO_PICKER = 2;
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static DatabaseReference currentForumRef, currentForumMessages;
     private static String groupId;
+    private static SwipeRefreshLayout swipeRefreshLayout;
     private ListView groupListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
-    private ProgressBar groupPb;
     private String userMail;
     private String groupName;
     private ValueEventListener currentForumRefListener;
-    private ChildEventListener CurrentMessageRefListener;
 
     //private MessageAdapter messageAdapter;
+    private ChildEventListener CurrentMessageRefListener;
     /**
      * using the  new adapter
      */
     private MessageAdapter messageAdapter;
     private ArrayList<Message> messageList;
-
     private boolean currentUserIsCreator = false;
-
     //Firebase storage & Database
     private FirebaseStorage groupStorage;
     private StorageReference groupStorageRef;
@@ -155,7 +153,23 @@ public class GroupActivity extends AppCompatActivity {
         final View rootView = findViewById(R.id.root_group);
         photopicker = (ImageButton) findViewById(R.id.forum_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_forum);
-        groupPb = (ProgressBar) findViewById(R.id.forum_progressBar);
+
+
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout_forum);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                    }
+                                }
+        );
 
         // Give the topmost view of your activity layout hierarchy. This will be used to measure soft keyboard height
         final EmojiconsPopup popup = new EmojiconsPopup(rootView, this);
@@ -257,7 +271,6 @@ public class GroupActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        groupPb.setVisibility(ProgressBar.INVISIBLE);
 
         /**
          * button click listeners
@@ -322,7 +335,7 @@ public class GroupActivity extends AppCompatActivity {
                  */
                 //start subcribe
 
-                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupName));
+                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
                 // [END subscribe_topics]
             }
         });
@@ -363,9 +376,17 @@ public class GroupActivity extends AppCompatActivity {
             case R.id.action_edit_group_name:
                 showEditGroupDialog();
                 return true;
+            case R.id.action_refresh_group:
+                attachMessageListener();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
@@ -381,6 +402,8 @@ public class GroupActivity extends AppCompatActivity {
         detachMessageListener();
         detachForumListener();
         messageList.clear();
+        messageAdapter.notifyDataSetChanged();
+
     }
 
     @Override
@@ -389,6 +412,7 @@ public class GroupActivity extends AppCompatActivity {
         detachMessageListener();
         detachForumListener();
         messageList.clear();
+        messageAdapter.notifyDataSetChanged();
     }
 
     private void attachForumListener() {
@@ -418,6 +442,10 @@ public class GroupActivity extends AppCompatActivity {
     }
 
     private void attachMessageListener() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
+
         CurrentMessageRefListener = currentForumMessages.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -444,6 +472,11 @@ public class GroupActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+        //currentForumMessages.addChildEventListener(CurrentMessageRefListener);
+
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     private void detachMessageListener() {
@@ -518,6 +551,11 @@ public class GroupActivity extends AppCompatActivity {
         /* creates the instance of the Edit Dialog */
         EditGroupDialog dialogEditGroup = EditGroupDialog.newInstance(groupName, groupId);
         dialogEditGroup.show(GroupActivity.this.getFragmentManager(), "EditGroupDialog");
+    }
+
+    @Override
+    public void onRefresh() {
+        attachMessageListener();
     }
 
     public static class AlertFragment extends DialogFragment {

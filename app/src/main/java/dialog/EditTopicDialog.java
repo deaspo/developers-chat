@@ -18,39 +18,38 @@ import com.deaspostudios.devchats.Constants;
 import com.deaspostudios.devchats.R;
 import com.google.firebase.database.DatabaseReference;
 
-import static fragment.group.gDatabaseReference;
+import static fragment.topic.tDatabaseReference;
 
 /**
  * Created by polyc on 02/03/2017.
  */
 
-public class EditGroupDialog extends DialogFragment {
-    String groupID;
+public class EditTopicDialog extends DialogFragment {
+    String topicID;
 
-    String mGroupName;
+    String mTopicName;
 
-    EditText editGroupName;
-
+    EditText editTopicName;
 
     /**
      * Public static constructor that creates fragment and
      * passes a bundle with data into it when adapter is created
      */
 
-    public static EditGroupDialog newInstance(String mGroupName, String mGroupID) {
-        EditGroupDialog editGroupDialog = new EditGroupDialog();
+    public static EditTopicDialog newInstance(String mTopicName, String mTopicID) {
+        EditTopicDialog editTopicDialog = new EditTopicDialog();
         Bundle bundle = new Bundle();
-        bundle.putString(Constants.KEY_LIST_NAME, mGroupName);
-        bundle.putString(Constants.KEY_LIST_ID, mGroupID);
-        editGroupDialog.setArguments(bundle);
-        return editGroupDialog;
+        bundle.putString(Constants.KEY_LIST_NAME, mTopicID);
+        bundle.putString(Constants.KEY_LIST_ID, mTopicID);
+        editTopicDialog.setArguments(bundle);
+        return editTopicDialog;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mGroupName = getArguments().getString(Constants.KEY_LIST_NAME);
-        groupID = getArguments().getString(Constants.KEY_LIST_ID);
+        mTopicName = getArguments().getString(Constants.KEY_LIST_NAME);
+        topicID = getArguments().getString(Constants.KEY_LIST_ID);
     }
 
     /**
@@ -68,17 +67,17 @@ public class EditGroupDialog extends DialogFragment {
         /* Use the Builder class for convenient dialog construction */
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.CustomTheme_Dialog);
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_edit_group, null);
-        editGroupName = (EditText) view.findViewById(R.id.edit_group_dialog);
-        editGroupName.setText(mGroupName);
+        View view = inflater.inflate(R.layout.dialog_edit_topic, null);
+        editTopicName = (EditText) view.findViewById(R.id.edit_group_dialog);
+        editTopicName.setText(mTopicName);
         /**
          * Call editGroup() when user taps "Done" keyboard action
          */
-        editGroupName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        editTopicName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
-                    editGroup();
+                    editTopic();
                 }
                 return true;
             }
@@ -91,7 +90,7 @@ public class EditGroupDialog extends DialogFragment {
                 .setPositiveButton(R.string.positive_button_create, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        editGroup();
+                        editTopic();
                     }
                 })
                 .setNegativeButton(R.string.negative_button_cancel, new DialogInterface.OnClickListener() {
@@ -100,22 +99,22 @@ public class EditGroupDialog extends DialogFragment {
                         /**
                          * close the dialog
                          */
-                        EditGroupDialog.this.getDialog().cancel();
+                        EditTopicDialog.this.getDialog().cancel();
                     }
                 });
         return builder.create();
     }
 
-    public void editGroup() {
-        String userenteredtext = editGroupName.getText().toString();
+    public void editTopic() {
+        String userenteredtext = editTopicName.getText().toString();
         /**
          * check if empty or equal to the original  name
          */
-        if (!userenteredtext.equals("") && userenteredtext != mGroupName) {
+        if (!userenteredtext.equals("") && userenteredtext != mTopicName) {
             /**
              * updates the firebase ref
              */
-            DatabaseReference topicRef = gDatabaseReference.child(groupID).child("topic_name");
+            DatabaseReference topicRef = tDatabaseReference.child(topicID).child("topic_name");
             topicRef.setValue(userenteredtext);
 
         }
