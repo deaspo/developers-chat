@@ -25,7 +25,7 @@ import java.util.List;
 import Widgets.DividerItemDecoration;
 import Widgets.ItemClickSupport;
 import adapter.Items_forums;
-import adapter.RecycleAdapterTopic;
+import adapter.RecyclerAdapterTopic;
 import ui.TopicActivity;
 
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
@@ -44,7 +44,7 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     public static List<Items_forums> topics;
-    public static RecycleAdapterTopic topicsAdapter;
+    public static RecyclerAdapterTopic topicsAdapter;
     //firebase database instances
     public static FirebaseDatabase tFirebaseDatabase;
     public static DatabaseReference tDatabaseReference;

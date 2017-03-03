@@ -5,14 +5,14 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.deaspostudios.devchats.R;
 import com.google.firebase.database.ChildEventListener;
@@ -25,8 +25,10 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 
+import Widgets.DividerItemDecoration;
+import Widgets.ItemClickSupport;
+import adapter.RecyclerAdapterUser;
 import adapter.User;
-import adapter.UserAdapter;
 import ui.Chat;
 
 import static com.deaspostudios.devchats.MainActivity.mProfile;
@@ -44,21 +46,27 @@ import static com.deaspostudios.devchats.MainActivity.mVisible;
  * Use the {@link user#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class user extends Fragment {
+public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    public static List<User> onlineUsers;
+
     //adapters for users
-    public static UserAdapter usersAdapter;
+    public static List<User> onlineUsers;
+    public static RecyclerAdapterUser usersAdapter;
     //firebase database instances
     public static FirebaseDatabase uFirebaseDatabase;
     public static DatabaseReference uDatabaseReference;
     private static ChildEventListener uChildEventListener;
-    private ListView mMessageListView;
-    private ProgressBar mProgressBar;
+    /**
+     *
+     */
+    private static SwipeRefreshLayout swipeRefreshLayout;
+    //
+    private RecyclerView recyclerView;
+    //
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -89,6 +97,10 @@ public class user extends Fragment {
     }
 
     public static void attachUserDatabaseListener() {
+        // showing refresh animation before making http call
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
         if (uChildEventListener == null) {
             uChildEventListener = new ChildEventListener() {
                 @Override
@@ -96,14 +108,8 @@ public class user extends Fragment {
                     User user = dataSnapshot.getValue(User.class);
                     if (!user.getEmail().contains(mUserEmail)) {
                         if (Boolean.valueOf(user.getUser_visible())) {
-                            usersAdapter.add(user);
+                            onlineUsers.add(user);
                         }
-                        /*usersAdapter.sort(new Comparator<User>() {
-                            @Override
-                            public int compare(User user1, User user2) {
-                                return user1.getName().compareTo(user2.getName());
-                            }
-                        });*/
                         usersAdapter.notifyDataSetChanged();
                     }
                 }
@@ -116,7 +122,10 @@ public class user extends Fragment {
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
                     User user = dataSnapshot.getValue(User.class);
                     if (user != null) {
-                        usersAdapter.remove(user);
+                        if (!user.getEmail().contains(mUserEmail)) {
+                            onlineUsers.remove(user);
+                            usersAdapter.notifyDataSetChanged();
+                        }
                     }
                 }
 
@@ -131,6 +140,10 @@ public class user extends Fragment {
                 }
             };
             uDatabaseReference.addChildEventListener(uChildEventListener);
+        }
+        usersAdapter.notifyDataSetChanged();
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
         }
 
     }
@@ -177,35 +190,48 @@ public class user extends Fragment {
         getActivity().getWindow().setBackgroundDrawable(getResources().getDrawable(R.drawable.background));
 
         //initializes
-        mProgressBar = (ProgressBar) view.findViewById(R.id.userProgressBar);
-        mMessageListView = (ListView) view.findViewById(R.id.userListView);
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_layout_user);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_user);
 
-        mMessageListView.setAdapter(usersAdapter);
-
-        // Initialize progress bar
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-
-
-        mMessageListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        //mMessageListView.setAdapter(groupsAdapter);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        //recyclerView.addOnItemTouchListener();
+        ItemClickSupport.addTo(recyclerView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TextView selected = (TextView) view.findViewById(R.id.itemName);
-                TextView userid = (TextView) view.findViewById(R.id.user_uid);
-                String sele_name = selected.getText().toString();
-                String uid = userid.getText().toString();
-                if (sele_name != null && sele_name != mUsername && sele_name != "You") {
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                User user = onlineUsers.get(position);
+                if (user != null && !user.getName().equals(mUsername) && !user.getName().equals("You")) {
                     Intent intent = new Intent(getActivity(), Chat.class);
-                    /* Get the user name and id using
-                     * ref and then grab the key.
+                    intent.putExtra("username", user.getName());
+                    intent.putExtra("userid", user.getUid());
+                    /**
+                     * start activity
                      */
-                    intent.putExtra("username", sele_name);
-                    intent.putExtra("userid", uid);
-                    /* Starts an active showing the details for the selected list */
                     startActivity(intent);
                 }
             }
+
         });
 
+        recyclerView.setAdapter(usersAdapter);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                        attachUserDatabaseListener();
+                                    }
+                                }
+        );
         return view;
     }
 
@@ -243,16 +269,16 @@ public class user extends Fragment {
     public void onPause() {
         super.onPause();
         detachUserDatabaseListener();
-        usersAdapter.clear();
         onlineUsers.clear();
+        usersAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onStop() {
         super.onStop();
         detachUserDatabaseListener();
-        usersAdapter.clear();
         onlineUsers.clear();
+        usersAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -262,6 +288,11 @@ public class user extends Fragment {
             attachUserDatabaseListener();
         }
 
+    }
+
+    @Override
+    public void onRefresh() {
+        attachUserDatabaseListener();
     }
 
     /**

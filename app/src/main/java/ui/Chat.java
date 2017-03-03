@@ -20,7 +20,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
-import android.widget.ProgressBar;
 
 import com.deaspostudios.devchats.R;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -62,7 +61,6 @@ public class Chat extends AppCompatActivity {
     private ListView chatListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
-    private ProgressBar chatPb;
     private DatabaseReference senderRef;
     private ChildEventListener messageRefListener;
     private String selected_user, selected_user_id;
@@ -121,7 +119,6 @@ public class Chat extends AppCompatActivity {
         emojiButton = (ImageView) findViewById(R.id.emojiButton_chat);
         photopicker = (ImageButton) findViewById(R.id.chat_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_chat1);
-        chatPb = (ProgressBar) findViewById(R.id.chat_progressBar);
 
         /**
          * setting up the emoji keyboard
@@ -251,7 +248,6 @@ public class Chat extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(selected_user);
         }
-        chatPb.setVisibility(ProgressBar.INVISIBLE);
 
         /**
          * button click listeners

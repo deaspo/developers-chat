@@ -16,11 +16,11 @@ import java.util.List;
  * Created by polyc on 01/03/2017.
  */
 
-public class RecycleAdapterTopic extends RecyclerView.Adapter<RecycleAdapterTopic.MyViewHolder> {
+public class RecyclerAdapterTopic extends RecyclerView.Adapter<RecyclerAdapterTopic.MyViewHolder> {
     private Context mContext;
     private List<Items_forums> list;
 
-    public RecycleAdapterTopic(Context mContext, List<Items_forums> list) {
+    public RecyclerAdapterTopic(Context mContext, List<Items_forums> list) {
         this.mContext = mContext;
         this.list = list;
     }

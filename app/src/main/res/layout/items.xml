@@ -38,9 +38,11 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
+                android:layout_marginLeft="15dp"
                 android:gravity="center|right"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textSize="14sp"
+                android:textSize="16sp"
+                android:textStyle="normal|bold"
                 tools:text="User name is polycarp" />
 
             <TextView
@@ -67,6 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/pprofile"
                 android:layout_alignParentStart="true"
+                android:layout_marginRight="15dp"
                 android:gravity="center|right"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textSize="14sp"

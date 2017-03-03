@@ -49,8 +49,9 @@ import java.util.Date;
 import java.util.List;
 
 import adapter.Items_forums;
-import adapter.RecycleAdapterTopic;
 import adapter.RecyclerAdapterGroup;
+import adapter.RecyclerAdapterTopic;
+import adapter.RecyclerAdapterUser;
 import adapter.User;
 import adapter.UserAdapter;
 import dialog.AddGroupDialog;
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
     public static String mUsername, mUserphoto, mUserEmail;
-    public static String mVisible, mStatusVisble;
+    public static Boolean mVisible, mStatusVisble;
     public static DatabaseReference usersDbRef;
     public static ChildEventListener usersChildEventListener;
     public static String mUID;
@@ -238,11 +239,11 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //initialize users
         onlineUsers = new ArrayList<>();
-        usersAdapter = new UserAdapter(this, R.layout.items, onlineUsers);
+        usersAdapter = new RecyclerAdapterUser(this, onlineUsers);
 
         //initialize topics
         topics = new ArrayList<>();
-        topicsAdapter = new RecycleAdapterTopic(this, topics);
+        topicsAdapter = new RecyclerAdapterTopic(this, topics);
         /**
          * testing with the activelistadapter
          */
@@ -438,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     @Override
     protected void onPause() {
         super.onPause();
-        usersAdapter.clear();
         if (mAuthStateListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
@@ -448,6 +448,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         detachUserDatabaseListener();
         onlineUsers.clear();
+        usersAdapter.notifyDataSetChanged();
 
     }
 
@@ -458,8 +459,8 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
         }
         detachUserDatabaseListener();
-        usersAdapter.clear();
         onlineUsers.clear();
+        usersAdapter.notifyDataSetChanged();
     }
 
     private void OnSignedInialize(String username, String useremail, String uid) {
@@ -476,8 +477,8 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
         if (mStatusVisble == null || mVisible == null) {
-            mStatusVisble = String.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
-            mVisible = String.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
+            mStatusVisble = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
+            mVisible = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
         }
         setDefaults();
         addUser(username, useremail, uid);
@@ -760,8 +761,8 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             } else {
 
                 detachUserDatabaseListener();
-                usersAdapter.clear();
                 onlineUsers.clear();
+                usersAdapter.notifyDataSetChanged();
                 /**
                  * topics db
                  */
