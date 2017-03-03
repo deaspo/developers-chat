@@ -53,7 +53,6 @@ import adapter.RecyclerAdapterGroup;
 import adapter.RecyclerAdapterTopic;
 import adapter.RecyclerAdapterUser;
 import adapter.User;
-import adapter.UserAdapter;
 import dialog.AddGroupDialog;
 import dialog.AddTopicDialog;
 import fragment.fav;
@@ -235,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //initialize chats tab
         chattingUsers = new ArrayList<>();
-        chattingAdapter = new UserAdapter(this, R.layout.items, chattingUsers);
+        chattingAdapter = new RecyclerAdapterUser(this, chattingUsers);
 
         //initialize users
         onlineUsers = new ArrayList<>();
