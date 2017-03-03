@@ -17,50 +17,44 @@ import android.widget.TextView;
 import com.deaspostudios.devchats.Constants;
 import com.deaspostudios.devchats.R;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ServerValue;
 
-import java.util.HashMap;
-
-import adapter.Items_forums;
-
-import static com.deaspostudios.devchats.MainActivity.mUserEmail;
-import static com.deaspostudios.devchats.MainActivity.mUsername;
-import static fragment.topic.attachTopicDatabaseListener;
 import static fragment.topic.tDatabaseReference;
 
 /**
- * Created by polyc on 03/02/2017.
+ * Created by polyc on 02/03/2017.
  */
 
-public class AddTopicDialog extends DialogFragment {
-    String mEncodedEmail;
+public class EditTopicDialog extends DialogFragment {
+    String topicID;
 
-    EditText addTopic;
+    String mTopicName;
 
+    EditText editTopicName;
 
     /**
      * Public static constructor that creates fragment and
      * passes a bundle with data into it when adapter is created
      */
 
-    public static AddTopicDialog newInstance(String mEncodedEmail) {
-        AddTopicDialog addTopicDialog = new AddTopicDialog();
+    public static EditTopicDialog newInstance(String mTopicName, String mTopicID) {
+        EditTopicDialog editTopicDialog = new EditTopicDialog();
         Bundle bundle = new Bundle();
-        bundle.putString(Constants.KEY_ENCODED_EMAIL, mEncodedEmail);
-        addTopicDialog.setArguments(bundle);
-        return addTopicDialog;
+        bundle.putString(Constants.KEY_LIST_NAME, mTopicID);
+        bundle.putString(Constants.KEY_LIST_ID, mTopicID);
+        editTopicDialog.setArguments(bundle);
+        return editTopicDialog;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mEncodedEmail = getArguments().getString(Constants.KEY_ENCODED_EMAIL);
+        mTopicName = getArguments().getString(Constants.KEY_LIST_NAME);
+        topicID = getArguments().getString(Constants.KEY_LIST_ID);
     }
 
     /**
      * Open the keyboard automatically when the dialog fragment is opened
      */
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -73,16 +67,17 @@ public class AddTopicDialog extends DialogFragment {
         /* Use the Builder class for convenient dialog construction */
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.CustomTheme_Dialog);
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View view = inflater.inflate(R.layout.dialog_add_topic, null);
-        addTopic = (EditText) view.findViewById(R.id.add_topic_dialog);
+        View view = inflater.inflate(R.layout.dialog_edit_topic, null);
+        editTopicName = (EditText) view.findViewById(R.id.edit_group_dialog);
+        editTopicName.setText(mTopicName);
         /**
-         * Call addMeal() when user taps "Done" keyboard action
+         * Call editGroup() when user taps "Done" keyboard action
          */
-        addTopic.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        editTopicName.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_DONE || keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
-                    addTopic();
+                    editTopic();
                 }
                 return true;
             }
@@ -95,7 +90,7 @@ public class AddTopicDialog extends DialogFragment {
                 .setPositiveButton(R.string.positive_button_create, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        addTopic();
+                        editTopic();
                     }
                 })
                 .setNegativeButton(R.string.negative_button_cancel, new DialogInterface.OnClickListener() {
@@ -104,50 +99,24 @@ public class AddTopicDialog extends DialogFragment {
                         /**
                          * close the dialog
                          */
-                        AddTopicDialog.this.getDialog().cancel();
+                        EditTopicDialog.this.getDialog().cancel();
                     }
                 });
         return builder.create();
     }
 
-    /**
-     * add new topic
-     */
-
-    public void addTopic() {
-        String userEnteredName = addTopic.getText().toString();
+    public void editTopic() {
+        String userenteredtext = editTopicName.getText().toString();
         /**
-         * checks if text is empty
+         * check if empty or equal to the original  name
          */
-        if (!userEnteredName.equals("")) {
+        if (!userenteredtext.equals("") && userenteredtext != mTopicName) {
             /**
-             * creates firebase reference
+             * updates the firebase ref
              */
-            /* topicRef to maintain random id */
-            DatabaseReference topicref = tDatabaseReference.getRef().push();
-            final String topicId = topicref.getKey();
-
-            /**
-             * Set raw version of date to the ServerValue.TIMESTAMP value and save into
-             * timestampCreatedMap
-             */
-            HashMap<String, Object> timestampCreated = new HashMap<>();
-            timestampCreated.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
-
-            /* Build the topic list */
-            Items_forums newTopicList = new Items_forums(userEnteredName, mUsername, topicId, mUserEmail, timestampCreated);
-
-            topicref.setValue(newTopicList);
-            /**
-             * db listener
-             */
-            attachTopicDatabaseListener();
-
-            /* Close the dialog fragment */
-            AddTopicDialog.this.getDialog().cancel();
-            /* go to that created topic */
+            DatabaseReference topicRef = tDatabaseReference.child(topicID).child("topic_name");
+            topicRef.setValue(userenteredtext);
 
         }
-
     }
 }

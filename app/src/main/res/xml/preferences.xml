@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:summary="Application Settings"
+        android:title="Settings">
+
+        <EditTextPreference
+            android:key="username"
+            android:summary="Tap to change your user name"
+            android:title="Your Name"></EditTextPreference>
+
+        <EditTextPreference
+            android:defaultValue="Hey there am also a developer!"
+            android:key="userstatus"
+            android:summary="Tap to change your status"
+            android:title="Hey there am also a developer!"></EditTextPreference>
+
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="Application Privacy Settings"
+        android:title="Privacy">
+
+        <PreferenceScreen
+            android:key="privacy"
+            android:persistent="false"
+            android:title="Privacy">
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="statusvisibility"
+                android:summary="This option if selected will allow other users to see your status."
+                android:title="Show/Hide your status" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="onlinevisibility"
+                android:summary="Allow people to know that you are online."
+                android:title="Online visibility" />
+
+        </PreferenceScreen>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="Application Developers"
+        android:title="Developers">
+
+        <Preference
+            android:summary="https://www.deaspostudios.com"
+            android:title="Visit the Developer's page">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://www.deaspostudios.com" />
+        </Preference>
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

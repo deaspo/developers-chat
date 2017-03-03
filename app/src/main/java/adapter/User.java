@@ -9,6 +9,10 @@ public class User {
     private String name;
     private String email;
     private String uid;
+    private String ppic;
+    private String status;
+    private Boolean status_visible;
+    private Boolean user_visible;
 
 
     /**
@@ -25,10 +29,14 @@ public class User {
      * @param email
      * @param uid
      */
-    public User(String name, String email, String uid, String last_active) {
+    public User(String name, String email, String uid, String last_active, String ppic, String status, Boolean status_visible, Boolean user_visible) {
         this.name = name;
         this.email = email;
         this.uid = uid;
+        this.ppic = ppic;
+        this.status = status;
+        this.status_visible = status_visible;
+        this.user_visible = user_visible;
         this.last_active = last_active;
     }
 
@@ -57,6 +65,42 @@ public class User {
     }
 
     public String getDate_joined() {
+        return last_active;
+    }
+
+    public String getPpic() {
+        return ppic;
+    }
+
+    public void setPpic(String ppic) {
+        this.ppic = ppic;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Boolean getStatus_visible() {
+        return status_visible;
+    }
+
+    public void setStatus_visible(Boolean status_visible) {
+        this.status_visible = status_visible;
+    }
+
+    public Boolean getUser_visible() {
+        return user_visible;
+    }
+
+    public void setUser_visible(Boolean user_visible) {
+        this.user_visible = user_visible;
+    }
+
+    public String getLast_active() {
         return last_active;
     }
 

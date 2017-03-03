@@ -36,11 +36,11 @@ public class Items_forums {
         this.usersRegistered = new HashMap<>();
     }
 
-    public String getName() {
+    public String getTopic_name() {
         return topic_name;
     }
 
-    public String getOwner() {
+    public String getCreated_by() {
         return created_by;
     }
 

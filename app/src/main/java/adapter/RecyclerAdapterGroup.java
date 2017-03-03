@@ -9,18 +9,19 @@ import android.widget.TextView;
 
 import com.deaspostudios.devchats.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by polyc on 30/01/2017.
  */
 
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyViewHolder> {
+public class RecyclerAdapterGroup extends RecyclerView.Adapter<RecyclerAdapterGroup.MyViewHolder> {
 
     private Context mContext;
-    private List<Items> list;
+    private List<Items_forums> list;
 
-    public RecyclerAdapter(Context mContext, List<Items> list) {
+    public RecyclerAdapterGroup(Context mContext, List<Items_forums> list) {
         this.mContext = mContext;
         this.list = list;
     }
@@ -28,15 +29,16 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View listView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.items, parent, false);
+                .inflate(R.layout.item_forums, parent, false);
         return new MyViewHolder(listView);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
-        Items mlist = list.get(position);
+    public void onBindViewHolder(final MyViewHolder holder, int position) {
 
-        holder.itemName.setText(mlist.getName());
+        Items_forums itemsForums = list.get(position);
+        holder.itemName.setText(itemsForums.getTopic_name());
+        holder.creator.setText(itemsForums.getCreated_by());
 
         //apply the glide libbrary
         //Glide.with(mContext).load(mlist.getThumbnail()).into(holder.thumbnail);
@@ -47,14 +49,23 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
         return list.size();
     }
 
+    public void setFilter(List<Items_forums> items) {
+        list = new ArrayList<>();
+        list.addAll(items);
+        notifyDataSetChanged();
+    }
+
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView itemName;
+        public TextView itemName, creator;
         //public ImageView thumbnail;
 
-        public MyViewHolder(View view) {
+        public MyViewHolder(final View view) {
             super(view);
-            itemName = (TextView) view.findViewById(R.id.itemName);
-            //thumbnail = (ImageView) view.findViewById(R.id.itemThumbanail);
+            itemName = (TextView) view.findViewById(R.id.text_view_list_name);
+            creator = (TextView) view.findViewById(R.id.text_view_created_by);
         }
+
     }
+
+
 }
