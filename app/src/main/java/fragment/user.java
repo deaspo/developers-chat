@@ -53,7 +53,6 @@ public class user extends Fragment {
     public static List<User> onlineUsers;
     //adapters for users
     public static UserAdapter usersAdapter;
-    public static Boolean show_hide_user = false;
     //firebase database instances
     public static FirebaseDatabase uFirebaseDatabase;
     public static DatabaseReference uDatabaseReference;

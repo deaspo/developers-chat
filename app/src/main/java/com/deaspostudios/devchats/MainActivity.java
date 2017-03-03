@@ -602,7 +602,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     private void addUser(String mUsername, String mEncodedEmail, String uUid) {
         mUID = uUid;
-        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus);
+        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus, mStatusVisble, mVisible);
         usersDbRef.child(uUid).setValue(user);
 
         /*chatsFirebaseDatabase =FirebaseDatabase.getInstance();
