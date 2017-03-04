@@ -4,30 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh_layout_chat"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:layout_marginTop="60dp">
-
-        <ListView
-            android:id="@+id/chat_list_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="4dp"
-            android:clipToPadding="false"
-            android:divider="@drawable/chat_divider"
-            android:paddingBottom="4dp"
-            android:paddingTop="8dp"
-            android:scrollbarStyle="outsideOverlay"
-            android:stackFromBottom="false"
-            android:transcriptMode="normal" />
-
-
-    </android.support.v4.widget.SwipeRefreshLayout>
-
-
     <LinearLayout
         android:id="@+id/bottomlayout_chat"
         android:layout_width="match_parent"
@@ -88,5 +64,29 @@
             android:src="@drawable/input_send" />
 
     </LinearLayout>
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout_chat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottomlayout_chat"
+        android:layout_marginBottom="4dp"
+        android:layout_marginTop="60dp">
+
+        <ListView
+            android:id="@+id/chat_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="4dp"
+            android:clipToPadding="false"
+            android:divider="@drawable/chat_divider"
+            android:paddingBottom="4dp"
+            android:paddingTop="8dp"
+            android:scrollbarStyle="outsideOverlay"
+            android:stackFromBottom="false"
+            android:transcriptMode="normal" />
+
+
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </RelativeLayout>
