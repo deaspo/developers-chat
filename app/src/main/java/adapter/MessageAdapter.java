@@ -6,8 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -80,6 +82,7 @@ public class MessageAdapter extends BaseAdapter {
             holder1.photoView = (ImageView) v.findViewById(R.id.photoUser2);
             holder1.messageStatus = (ImageView) v.findViewById(R.id.user_sent_status);
             holder1.photo_layout = (LinearLayout) v.findViewById(R.id.ppic);
+            holder1.innerpb = (ProgressBar) v.findViewById(R.id.incomingpb);
 
             v.setTag(holder1);
             /*if (view == null) {
@@ -92,12 +95,14 @@ public class MessageAdapter extends BaseAdapter {
             holder1.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             boolean isPhoto = message.getPhotoUrl() != null;
             if (isPhoto) {
+                holder1.innerpb.setVisibility(View.VISIBLE);
                 holder1.messageTextView.setVisibility(View.GONE);
                 holder1.photo_layout.setVisibility(View.VISIBLE);
                 holder1.photoView.setVisibility(View.VISIBLE);
                 Glide.with(holder1.photoView.getContext())
                         .load(message.getPhotoUrl())
                         .into(holder1.photoView);
+                holder1.innerpb.setVisibility(View.GONE);
             } else {
                 holder1.messageTextView.setVisibility(View.VISIBLE);
                 holder1.photo_layout.setVisibility(View.GONE);
@@ -125,6 +130,7 @@ public class MessageAdapter extends BaseAdapter {
             holder2.photoView = (ImageView) v.findViewById(R.id.photoView);
             holder2.senderName = (TextView) v.findViewById(R.id.other_user);
             holder2.photo = (LinearLayout) v.findViewById(R.id.photo);
+            holder2.outerpb = (ProgressBar) v.findViewById(R.id.outgoingpb);
 
             v.setTag(holder2);
             /*if (view == null) {
@@ -139,12 +145,14 @@ public class MessageAdapter extends BaseAdapter {
             holder2.senderName.setText(message.getUserName());
             boolean isPhoto = message.getPhotoUrl() != null;
             if (isPhoto) {
+                holder2.outerpb.setVisibility(View.VISIBLE);
                 holder2.messageTextView.setVisibility(View.GONE);
                 holder2.photo.setVisibility(View.VISIBLE);
                 holder2.photoView.setVisibility(View.VISIBLE);
                 Glide.with(holder2.photoView.getContext())
                         .load(message.getPhotoUrl())
                         .into(holder2.photoView);
+                holder2.outerpb.setVisibility(View.GONE);
             } else {
                 holder2.messageTextView.setVisibility(View.VISIBLE);
                 holder2.photo.setVisibility(View.GONE);
@@ -177,6 +185,8 @@ public class MessageAdapter extends BaseAdapter {
         public TextView timeTextView;
         public ImageView photoView;
         public LinearLayout photo_layout;
+        public FrameLayout innerframre;
+        public ProgressBar innerpb;
 
 
     }
@@ -187,6 +197,8 @@ public class MessageAdapter extends BaseAdapter {
         public TextView timeTextView;
         public ImageView photoView;
         public LinearLayout photo;
+        public FrameLayout outerframre;
+        public ProgressBar outerpb;
 
     }
 }

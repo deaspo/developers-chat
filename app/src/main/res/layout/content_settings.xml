@@ -15,13 +15,31 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <com.alexvasilkov.gestures.views.GestureImageView
-                android:id="@+id/aboutpic"
-                android:layout_width="140dp"
-                android:layout_height="140dp"
-                android:adjustViewBounds="false"
-                android:elevation="4dp"
-                android:scaleType="centerCrop" />
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ProgressBar
+                    android:id="@+id/aboutpb"
+                    style="@android:style/Widget.ProgressBar.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginTop="20dp" />
+
+                <com.alexvasilkov.gestures.views.GestureImageView
+                    android:id="@+id/aboutpic"
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:adjustViewBounds="false"
+                    android:elevation="4dp"
+                    android:scaleType="centerCrop" />
+
+            </FrameLayout>
+
 
             <TextView
                 android:id="@+id/aboutname"

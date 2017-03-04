@@ -59,14 +59,33 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/msgYou">
 
+                <FrameLayout
+                    android:id="@+id/outerframe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
 
-                <ImageView
-                    android:id="@+id/photoView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:adjustViewBounds="true"
-                    android:paddingLeft="6dp" />
+                    <ProgressBar
+                        android:id="@+id/outgoingpb"
+                        style="@android:style/Widget.ProgressBar.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="20dp"
+                        android:layout_marginTop="20dp"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/photoView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:adjustViewBounds="true"
+                        android:paddingLeft="6dp" />
+
+                </FrameLayout>
+
             </LinearLayout>
 
             <LinearLayout

@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -20,8 +21,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.deaspostudios.devchats.R;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -58,6 +62,7 @@ import static fragment.fav.cDatabaseReference;
 public class Chat extends AppCompatActivity {
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    private ProgressBar chatspb;
     private ListView chatListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
@@ -119,6 +124,7 @@ public class Chat extends AppCompatActivity {
         emojiButton = (ImageView) findViewById(R.id.emojiButton_chat);
         photopicker = (ImageButton) findViewById(R.id.chat_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_chat1);
+        chatspb = (ProgressBar) findViewById(R.id.chatspb);
 
         /**
          * setting up the emoji keyboard
@@ -340,6 +346,7 @@ public class Chat extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
+            chatspb.setVisibility(View.VISIBLE);
             Uri selectedUmageUri = data.getData();
             StorageReference sender_photoRef = senderStorageRef.child(selectedUmageUri.getLastPathSegment());
             /**
@@ -385,7 +392,15 @@ public class Chat extends AppCompatActivity {
                     childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
 
                     cDatabaseReference.updateChildren(childUpdates);
+                    chatspb.setVisibility(View.GONE);
 
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                    chatspb.setVisibility(View.GONE);
                 }
             });
 

@@ -11,6 +11,7 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +44,7 @@ public class SettingsActivity extends AppCompatActivity {
     private static TextView ustatus;
     private static GestureImageView upic;
     String imgpath;
+    private ProgressBar aboutpb;
     private String aboutname;
     private String aboutpic;
 
@@ -118,6 +120,8 @@ public class SettingsActivity extends AppCompatActivity {
         CardView cardView = (CardView) findViewById(R.id.cardstatus);
         CardView aboutmore = (CardView) findViewById(R.id.aboutmore);
         Button button = (Button) findViewById(R.id.aboutbutton);
+        aboutpb = (ProgressBar) findViewById(R.id.aboutpb);
+
 
         /**
          * click actions
@@ -143,6 +147,7 @@ public class SettingsActivity extends AppCompatActivity {
                 intent.setType("image/jpeg");
                 intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
                 startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PIC_PICKER);
+                aboutpb.setVisibility(View.VISIBLE);
             }
         });
 
@@ -159,6 +164,7 @@ public class SettingsActivity extends AppCompatActivity {
                     .bitmapTransform(new CircleTransform(upic.getContext()))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(upic);
+            aboutpb.setVisibility(View.GONE);
         } else {
             Glide.with(upic.getContext())
                     .load(aboutpic)
@@ -167,6 +173,7 @@ public class SettingsActivity extends AppCompatActivity {
                     .bitmapTransform(new CircleTransform(upic.getContext()))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(upic);
+            aboutpb.setVisibility(View.GONE);
         }
     }
 
@@ -220,11 +227,13 @@ public class SettingsActivity extends AppCompatActivity {
                     userpreferences.edit().putString("userpic", mUserphoto).apply();
                     updateUser();
                     refreshStatusImage();
+                    aboutpb.setVisibility(View.GONE);
                 }
             }).addOnFailureListener(this, new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Toast.makeText(getApplicationContext(), "Failed to upload photo", Toast.LENGTH_LONG).show();
+                    aboutpb.setVisibility(View.GONE);
                     e.printStackTrace();
                 }
             });
