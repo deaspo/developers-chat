@@ -512,7 +512,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
-            forumspb.setVisibility(View.VISIBLE);
+            forumspb.setVisibility(ProgressBar.VISIBLE);
             Uri selectedUmageUri = data.getData();
             StorageReference topic_photoRef = groupStorageRef.child(selectedUmageUri.getLastPathSegment());
 

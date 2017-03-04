@@ -502,7 +502,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
-            forumspb.setVisibility(View.VISIBLE);
+            forumspb.setVisibility(ProgressBar.VISIBLE);
             Uri selectedUmageUri = data.getData();
             StorageReference topic_photoRef = topicStorageRef.child(selectedUmageUri.getLastPathSegment());
 
@@ -521,7 +521,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     if (messageAdapter != null)
                         messageAdapter.notifyDataSetChanged();
                     currentForumMessages.push().setValue(message);
-                    forumspb.setVisibility(View.GONE);
+                    forumspb.setVisibility(ProgressBar.GONE);
 
 
                 }
@@ -529,6 +529,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
+                    forumspb.setVisibility(ProgressBar.GONE);
                     e.printStackTrace();
                 }
             });

@@ -346,7 +346,7 @@ public class Chat extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
-            chatspb.setVisibility(View.VISIBLE);
+            chatspb.setVisibility(ProgressBar.VISIBLE);
             Uri selectedUmageUri = data.getData();
             StorageReference sender_photoRef = senderStorageRef.child(selectedUmageUri.getLastPathSegment());
             /**
@@ -392,7 +392,7 @@ public class Chat extends AppCompatActivity {
                     childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
 
                     cDatabaseReference.updateChildren(childUpdates);
-                    chatspb.setVisibility(View.GONE);
+                    chatspb.setVisibility(ProgressBar.GONE);
 
                 }
             }).addOnFailureListener(new OnFailureListener() {
@@ -400,7 +400,7 @@ public class Chat extends AppCompatActivity {
                 public void onFailure(@NonNull Exception e) {
                     Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
-                    chatspb.setVisibility(View.GONE);
+                    chatspb.setVisibility(ProgressBar.GONE);
                 }
             });
 

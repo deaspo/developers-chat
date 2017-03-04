@@ -95,14 +95,14 @@ public class MessageAdapter extends BaseAdapter {
             holder1.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             boolean isPhoto = message.getPhotoUrl() != null;
             if (isPhoto) {
-                holder1.innerpb.setVisibility(View.VISIBLE);
+                holder1.innerpb.setVisibility(ProgressBar.VISIBLE);
                 holder1.messageTextView.setVisibility(View.GONE);
                 holder1.photo_layout.setVisibility(View.VISIBLE);
                 holder1.photoView.setVisibility(View.VISIBLE);
                 Glide.with(holder1.photoView.getContext())
                         .load(message.getPhotoUrl())
                         .into(holder1.photoView);
-                holder1.innerpb.setVisibility(View.GONE);
+                holder1.innerpb.setVisibility(ProgressBar.GONE);
             } else {
                 holder1.messageTextView.setVisibility(View.VISIBLE);
                 holder1.photo_layout.setVisibility(View.GONE);
@@ -147,12 +147,12 @@ public class MessageAdapter extends BaseAdapter {
             if (isPhoto) {
                 holder2.outerpb.setVisibility(View.VISIBLE);
                 holder2.messageTextView.setVisibility(View.GONE);
-                holder2.photo.setVisibility(View.VISIBLE);
+                holder2.photo.setVisibility(ProgressBar.VISIBLE);
                 holder2.photoView.setVisibility(View.VISIBLE);
                 Glide.with(holder2.photoView.getContext())
                         .load(message.getPhotoUrl())
                         .into(holder2.photoView);
-                holder2.outerpb.setVisibility(View.GONE);
+                holder2.outerpb.setVisibility(ProgressBar.GONE);
             } else {
                 holder2.messageTextView.setVisibility(View.VISIBLE);
                 holder2.photo.setVisibility(View.GONE);
