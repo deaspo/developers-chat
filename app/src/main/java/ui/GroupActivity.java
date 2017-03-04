@@ -58,6 +58,7 @@ import github.ankushsachdeva.emojicon.emoji.Emojicon;
 import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.viewPager;
 import static fragment.group.gDatabaseReference;
 
 /**
@@ -587,6 +588,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                     public void onClick(DialogInterface dialog, int id) {
                         gDatabaseReference.child(groupId).removeValue();
                         Intent i = new Intent(context, okClass);
+                        viewPager.setCurrentItem(0, true);
                         startActivity(i);
                     }
                 });

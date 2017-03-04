@@ -101,27 +101,28 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private static final String TAG_SETTINGS = "settings";
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
-    public static String mUsername, mUserphoto, mUserEmail;
+    public static String mUID, mStatus, mEncodedEmail, mUsername, mUserphoto, mUserEmail;
     public static Boolean mVisible, mStatusVisble;
     public static DatabaseReference usersDbRef;
     public static ChildEventListener usersChildEventListener;
-    public static String mUID;
-    public static String mEncodedEmail;
-    public static String mProfile;
-    public static String mStatus;
     // index to identify current nav menu item
     public static int navItemIndex = 0;
     public static String CURRENT_TAG = TAG_CHAT;
-    public static StorageReference storageReference, imageRef;
+    public static StorageReference storageReference, profile_photos, imageRef;
+    public static ViewPager viewPager;
+    /**
+     * store values
+     */
+    public static SharedPreferences userpreferences;
     /**
      * to save db offline when there is no internet connection
      */
     static boolean localCache = false;
+    static boolean profile_photo_cache = false;
     private static int SORT_ORDER = 0;
     //tabs specific
     private Toolbar toolbar;
     private TabLayout tabLayout;
-    private ViewPager viewPager;
     //Firebase auth
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
@@ -149,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
      */
     private NavigationView navigationView;
     private DrawerLayout drawer;
-    private View navHeader;
 
     public static void detachUsersListeners() {
         if (usersChildEventListener != null) {
@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        userpreferences = this.getSharedPreferences("com.deaspostudios.devchats", MODE_PRIVATE);
 
         /**
          * locally chache db
@@ -328,16 +329,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                     case R.id.nav_settings: /* need to have a settings activity */
                         startSettings();
                         drawer.closeDrawers();
-                        return true;
+                        break;
                     case R.id.nav_about_us:
                         // launch new intent instead of loading fragment
                         startActivity(new Intent(MainActivity.this, AboutUs.class));
                         drawer.closeDrawers();
-                        return true;
+                        break;
                     default:
-                        navItemIndex = 0;
                         CURRENT_TAG = TAG_CHAT;
-                        viewPager.setCurrentItem(0, true);
+                        viewPager.setCurrentItem(navItemIndex, true);
                         break;
                 }
 
@@ -490,7 +490,10 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
          */
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
+        //mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
+        mUserphoto = userpreferences.getString("userpic", null);
+        mStatus = userpreferences.getString("userstatus", "Hey there am also a developer!");
+
         if (mStatusVisble == null || mVisible == null) {
             mStatusVisble = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
             mVisible = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
@@ -506,6 +509,10 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             //attachChatUsersDb();
             attachUserDatabaseListener();
         }
+        /**
+         * set the profile pic storage
+         */
+        profile_photos = storageReference.child("profile_photos").child(mUID);
 
 
     }
@@ -529,8 +536,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public boolean onCreateOptionsMenu(Menu menu) {
 
         if (pageItemIndex == 2) {
-            getMenuInflater().inflate(R.menu.main_user, menu);
-            getMenuInflater().inflate(R.menu.main_user, menu);
+            getMenuInflater().inflate(R.menu.main_fav, menu);
             SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
             searchMenuItem = menu.findItem(R.id.app_bar_search_fav);
             searchView = (SearchView) searchMenuItem.getActionView();
@@ -636,7 +642,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     private void addUser(String mUsername, String mEncodedEmail, String uUid) {
         mUID = uUid;
-        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus, mStatusVisble, mVisible);
+        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         usersDbRef.child(uUid).setValue(user);
 
         /*chatsFirebaseDatabase =FirebaseDatabase.getInstance();
@@ -668,11 +674,10 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     }
 
     public void startSettings() {
-        Intent intent = new Intent(this, MyPreferenceActivity.class);
-        intent.putExtra("username", Constants.USER_NAME);
-        intent.putExtra("userstatus", Constants.USER_STATUS);
-        intent.putExtra("statusvisibility", Constants.STATUS_VISIBLE);
-        intent.putExtra("onlinevisibility", Constants.USER_VISIBLE);
+        Intent intent = new Intent(this, SettingsActivity.class);
+        intent.putExtra("username", mUsername);
+        intent.putExtra("userpic", mUserphoto);
+        intent.putExtra("userstatus", mStatus);
 
         /**
          * starts setting activity

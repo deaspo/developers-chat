@@ -59,6 +59,7 @@ import github.ankushsachdeva.emojicon.emoji.Emojicon;
 import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.navItemIndex;
 import static fragment.topic.tDatabaseReference;
 
 /**
@@ -594,6 +595,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     public void onClick(DialogInterface dialog, int id) {
                         tDatabaseReference.child(topicId).removeValue();
                         Intent i = new Intent(context, okClass);
+                        navItemIndex = 1;
                         startActivity(i);
                     }
                 });

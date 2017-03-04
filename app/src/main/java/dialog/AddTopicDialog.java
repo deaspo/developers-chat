@@ -25,7 +25,6 @@ import adapter.Items_forums;
 
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
-import static fragment.topic.attachTopicDatabaseListener;
 import static fragment.topic.tDatabaseReference;
 
 /**
@@ -138,10 +137,6 @@ public class AddTopicDialog extends DialogFragment {
             Items_forums newTopicList = new Items_forums(userEnteredName, mUsername, topicId, mUserEmail, timestampCreated);
 
             topicref.setValue(newTopicList);
-            /**
-             * db listener
-             */
-            attachTopicDatabaseListener();
 
             /* Close the dialog fragment */
             AddTopicDialog.this.getDialog().cancel();

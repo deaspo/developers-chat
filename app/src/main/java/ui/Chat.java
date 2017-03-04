@@ -342,7 +342,6 @@ public class Chat extends AppCompatActivity {
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
             Uri selectedUmageUri = data.getData();
             StorageReference sender_photoRef = senderStorageRef.child(selectedUmageUri.getLastPathSegment());
-
             /**
              * compress the image
              */
