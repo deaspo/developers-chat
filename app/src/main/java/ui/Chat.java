@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -59,9 +60,10 @@ import static com.deaspostudios.devchats.MainActivity.mUsername;
 import static fragment.fav.cDatabaseReference;
 
 
-public class Chat extends AppCompatActivity {
+public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    private static SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar chatspb;
     private ListView chatListView;
     private ImageView emojiButton;
@@ -125,6 +127,22 @@ public class Chat extends AppCompatActivity {
         photopicker = (ImageButton) findViewById(R.id.chat_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_chat1);
         chatspb = (ProgressBar) findViewById(R.id.chatspb);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout_chat);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                    }
+                                }
+        );
 
         /**
          * setting up the emoji keyboard
@@ -434,14 +452,15 @@ public class Chat extends AppCompatActivity {
     }
 
     private void attachMessengesListeners() {
+        swipeRefreshLayout.setRefreshing(true);
         messageRefListener = senderRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Message message = dataSnapshot.getValue(Message.class);
                 //chat_messageAdapter.add(message);
                 chat_messageList.add(message);
-                if (chat_messageAdapter != null)
-                    chat_messageAdapter.notifyDataSetChanged();
+                chat_messageAdapter.notifyDataSetChanged();
+                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
@@ -460,6 +479,7 @@ public class Chat extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+        chat_messageAdapter.notifyDataSetChanged();
     }
 
     private void detachMessageListener() {
@@ -473,5 +493,11 @@ public class Chat extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         finish();
+    }
+
+    @Override
+    public void onRefresh() {
+        chat_messageList.clear();
+        attachMessengesListeners();
     }
 }
