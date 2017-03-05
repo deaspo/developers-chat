@@ -41,12 +41,11 @@
             android:textStyle="normal|bold" />
 
         <TextView
-            android:id="@+id/website"
+            android:id="@+id/status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:autoLink="web"
             android:lineSpacingExtra="8sp"
-            android:text="https://deaspostudios.com/"
+            android:text="Hey there am a developer"
             android:textAppearance="@android:style/TextAppearance.Material.Medium"
             android:textColor="@color/authui_colorAccent"
             android:textSize="15sp"

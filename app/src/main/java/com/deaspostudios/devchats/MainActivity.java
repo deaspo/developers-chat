@@ -28,9 +28,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -59,6 +64,7 @@ import fragment.fav;
 import fragment.group;
 import fragment.topic;
 import fragment.user;
+import other.CircleTransform;
 
 import static fragment.fav.attachChatUsersDb;
 import static fragment.fav.cDatabaseReference;
@@ -99,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private static final String TAG_TOPIC = "topics";
     private static final String TAG_USERS = "active users";
     private static final String TAG_SETTINGS = "settings";
+    private static final String urlNavHeaderBg = "http://api.androidhive.info/images/nav-menu-header-bg.jpg";
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
     public static String mUID, mStatus, mEncodedEmail, mUsername, mUserphoto, mUserEmail;
@@ -120,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     static boolean localCache = false;
     static boolean profile_photo_cache = false;
     private static int SORT_ORDER = 0;
+    private static ImageView img_profile, imgNavHeaderBg;
+    private static TextView username, status;
     //tabs specific
     private Toolbar toolbar;
     private TabLayout tabLayout;
@@ -130,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private FirebaseDatabase usersDb;
     private MenuItem searchMenuItem;
     private SearchView searchView;
+    private View navHeader;
     /**
      * tab icons
      *
@@ -176,6 +186,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         setContentView(R.layout.activity_main);
         userpreferences = this.getSharedPreferences("com.deaspostudios.devchats", MODE_PRIVATE);
 
+
         /**
          * locally chache db
          */
@@ -219,6 +230,14 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         navigationView = (NavigationView) findViewById(R.id.nav_view);
 
         setUpNavigationView();
+
+        // Navigation view header
+        navHeader = navigationView.getHeaderView(0);
+
+        img_profile = (ImageView) navHeader.findViewById(R.id.img_profile);
+        imgNavHeaderBg = (ImageView) navHeader.findViewById(R.id.img_header_bg);
+        username = (TextView) navHeader.findViewById(R.id.name);
+        status = (TextView) navHeader.findViewById(R.id.status);
 
         //setting up the tabs
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -284,6 +303,8 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         this.registerReceiver(connection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
+        loadProfile();
     }
 
     /**
@@ -735,6 +756,35 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         // Log and toast
         Log.d("Token for Polycarp", token);
         System.out.println("Token for Polycarp " + token);
+    }
+
+    public void loadProfile() {
+        //set the user name
+        username.setText(mUsername);
+        //set the ststus
+        status.setText(mStatus);
+        // Loading profile image
+        if (mUserphoto == null) {
+            Glide.with(this).using(new FirebaseImageLoader()).load(imageRef)
+                    .crossFade()
+                    .thumbnail(0.5f)
+                    .bitmapTransform(new CircleTransform(this))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(img_profile);
+        } else {
+            Glide.with(this).load(mUserphoto)
+                    .crossFade()
+                    .thumbnail(0.5f)
+                    .bitmapTransform(new CircleTransform(this))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(img_profile);
+        }
+        //load the header picture
+        Glide.with(this).load(urlNavHeaderBg)
+                .crossFade()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(imgNavHeaderBg);
+
     }
 
     private void refreshAllViews() {
