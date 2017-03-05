@@ -55,11 +55,28 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/sentM">
 
-                <ImageView
-                    android:id="@+id/photoUser2"
+                <FrameLayout
+                    android:id="@+id/innerframe"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                    android:layout_height="wrap_content">
+
+                    <ProgressBar
+                        android:id="@+id/incomingpb"
+                        style="@android:style/Widget.ProgressBar.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="20dp"
+                        android:layout_marginTop="20dp" />
+
+                    <ImageView
+                        android:id="@+id/photoUser2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1" />
+                </FrameLayout>
 
             </LinearLayout>
 

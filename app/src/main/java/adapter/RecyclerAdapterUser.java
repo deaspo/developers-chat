@@ -69,12 +69,22 @@ public class RecyclerAdapterUser extends RecyclerView.Adapter<RecyclerAdapterUse
         /**
          * set the profile picture
          */
-        Glide.with(holder.user_ppic.getContext()).using(new FirebaseImageLoader()).load(imageRef)
-                .crossFade()
-                .thumbnail(0.5f)
-                .bitmapTransform(new CircleTransform(holder.user_ppic.getContext()))
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(holder.user_ppic);
+        if (user.getPpic() != null) {
+            Glide.with(holder.user_ppic.getContext())
+                    .load(user.getPpic())
+                    .crossFade()
+                    .thumbnail(0.5f)
+                    .bitmapTransform(new CircleTransform(holder.user_ppic.getContext()))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder.user_ppic);
+        } else {
+            Glide.with(holder.user_ppic.getContext()).using(new FirebaseImageLoader()).load(imageRef)
+                    .crossFade()
+                    .thumbnail(0.5f)
+                    .bitmapTransform(new CircleTransform(holder.user_ppic.getContext()))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder.user_ppic);
+        }
     }
 
     @Override

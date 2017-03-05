@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -25,9 +26,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.deaspostudios.devchats.MainActivity;
 import com.deaspostudios.devchats.R;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -59,6 +63,7 @@ import github.ankushsachdeva.emojicon.emoji.Emojicon;
 import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.navItemIndex;
 import static fragment.topic.tDatabaseReference;
 
 /**
@@ -70,6 +75,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     private static final int RC_PHOTO_PICKER = 2;
     private static String topicId;
     private static SwipeRefreshLayout swipeRefreshLayout;
+    private ProgressBar forumspb;
     private ListView forumListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
@@ -152,6 +158,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         final View rootView = findViewById(R.id.root_topic);
         photopicker = (ImageButton) findViewById(R.id.forum_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_forum);
+        forumspb = (ProgressBar) findViewById(R.id.forumsspb);
 
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout_forum);
 
@@ -370,10 +377,10 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
          * action on menu item selected
          */
         switch (item.getItemId()) {
-            case R.id.action_remove_group:
+            case R.id.action_remove_topic:
                 showWarning(this.getApplicationContext(), "Remove " + topicName + "?", "By deleting this group, all the conversations will also be deleted", true, true, -1, MainActivity.class);
                 return true;
-            case R.id.action_edit_group_name:
+            case R.id.action_edit_topic_name:
                 showEditGTopicDialog();
                 return true;
             case R.id.action_refresh_topic:
@@ -495,6 +502,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
+            forumspb.setVisibility(ProgressBar.VISIBLE);
             Uri selectedUmageUri = data.getData();
             StorageReference topic_photoRef = topicStorageRef.child(selectedUmageUri.getLastPathSegment());
 
@@ -513,8 +521,16 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     if (messageAdapter != null)
                         messageAdapter.notifyDataSetChanged();
                     currentForumMessages.push().setValue(message);
+                    forumspb.setVisibility(ProgressBar.GONE);
 
 
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
+                    forumspb.setVisibility(ProgressBar.GONE);
+                    e.printStackTrace();
                 }
             });
 
@@ -594,6 +610,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     public void onClick(DialogInterface dialog, int id) {
                         tDatabaseReference.child(topicId).removeValue();
                         Intent i = new Intent(context, okClass);
+                        navItemIndex = 1;
                         startActivity(i);
                     }
                 });

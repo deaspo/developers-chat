@@ -115,8 +115,12 @@ public class EditGroupDialog extends DialogFragment {
             /**
              * updates the firebase ref
              */
-            DatabaseReference topicRef = gDatabaseReference.child(groupID).child("topic_name");
-            topicRef.setValue(userenteredtext);
+            DatabaseReference groupRef = gDatabaseReference.child(groupID).child("topic_name");
+            groupRef.setValue(userenteredtext);
+            /**
+             * close the dialog
+             */
+            EditGroupDialog.this.getDialog().cancel();
 
         }
     }

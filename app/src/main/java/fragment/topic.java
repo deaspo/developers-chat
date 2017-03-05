@@ -89,6 +89,7 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
                     topics.add(items_forums);
+                    topicsAdapter.notifyDataSetChanged();
                 }
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
@@ -97,6 +98,7 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
                     Items_forums items_forums = dataSnapshot.getValue(Items_forums.class);
                     topics.remove(items_forums);
+                    topicsAdapter.notifyDataSetChanged();
                 }
                 @Override
                 public void onChildMoved(DataSnapshot dataSnapshot, String s) {
@@ -231,6 +233,7 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
         super.onPause();
         detachTopicDatabaseListener();
         topics.clear();
+        topicsAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -238,6 +241,7 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
         super.onStop();
         detachTopicDatabaseListener();
         topics.clear();
+        topicsAdapter.notifyDataSetChanged();
     }
 
     @Override

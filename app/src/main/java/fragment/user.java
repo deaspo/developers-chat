@@ -31,11 +31,11 @@ import adapter.RecyclerAdapterUser;
 import adapter.User;
 import ui.Chat;
 
-import static com.deaspostudios.devchats.MainActivity.mProfile;
 import static com.deaspostudios.devchats.MainActivity.mStatus;
 import static com.deaspostudios.devchats.MainActivity.mStatusVisble;
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.mUserphoto;
 import static com.deaspostudios.devchats.MainActivity.mVisible;
 
 /**
@@ -109,8 +109,9 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
                     if (!user.getEmail().contains(mUserEmail)) {
                         if (Boolean.valueOf(user.getUser_visible())) {
                             onlineUsers.add(user);
+                            usersAdapter.notifyDataSetChanged();
                         }
-                        //usersAdapter.notifyDataSetChanged();
+                        //
                     }
                 }
 
@@ -157,7 +158,7 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     }
 
     public static void setUsername(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus, mStatusVisble, mVisible);
+        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).setValue(user_logged);
         }
@@ -166,7 +167,7 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     }
 
     public static void removeUserName(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus, mStatusVisble, mVisible);
+        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).removeValue();
         }

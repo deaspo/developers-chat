@@ -237,6 +237,7 @@ public class group extends Fragment implements SwipeRefreshLayout.OnRefreshListe
         super.onStop();
         detachGroupDatabaseListener();
         groups.clear();
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -244,6 +245,7 @@ public class group extends Fragment implements SwipeRefreshLayout.OnRefreshListe
         super.onPause();
         detachGroupDatabaseListener();
         groups.clear();
+        adapter.notifyDataSetChanged();
     }
 
     @Override

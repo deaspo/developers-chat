@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="ui.Chat">
+    tools:context=".SettingsActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.v7.widget.Toolbar
-            android:id="@+id/chat_toolbar"
+            android:id="@+id/settings_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
@@ -23,8 +23,8 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include
-        layout="@layout/content_chit_chat"
-        android:layout_height="508dp" />
+    <include layout="@layout/content_settings" />
+
 
 </android.support.design.widget.CoordinatorLayout>
+
