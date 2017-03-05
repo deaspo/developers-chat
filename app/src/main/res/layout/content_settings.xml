@@ -30,7 +30,7 @@
                     android:layout_marginBottom="20dp"
                     android:layout_marginTop="20dp" />
 
-                <com.alexvasilkov.gestures.views.GestureImageView
+                <ImageView
                     android:id="@+id/aboutpic"
                     android:layout_width="140dp"
                     android:layout_height="140dp"

@@ -1,6 +1,10 @@
 package adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
+import android.os.Process;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,8 +18,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.deaspostudios.devchats.AndroidUtilities;
+import com.deaspostudios.devchats.ImageActivity;
 import com.deaspostudios.devchats.R;
 
+import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,8 +67,8 @@ public class MessageAdapter extends BaseAdapter {
         View v = null;
         Message message = chatMessage.get(i);
 
-        ViewHolder1 holder1;
-        ViewHolder2 holder2;
+        final ViewHolder1 holder1;
+        final ViewHolder2 holder2;
 
         if (message.getUserName() == mUsername) {
             message.setUserType(UserType.SELF);
@@ -91,6 +97,19 @@ public class MessageAdapter extends BaseAdapter {
                 v = view;
                 holder1 = (ViewHolder1) v.getTag();
             }*/
+
+            holder1.photoView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, ImageActivity.class);
+                    holder1.photoView.buildDrawingCache();
+                    Bitmap bitmappic = holder1.photoView.getDrawingCache();
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    bitmappic.compress(Bitmap.CompressFormat.PNG, 90, byteArrayOutputStream);
+                    intent.putExtra("picsbytearraye", byteArrayOutputStream.toByteArray());
+                    mContext.startActivity(intent);
+                }
+            });
 
             holder1.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             boolean isPhoto = message.getPhotoUrl() != null;
@@ -141,6 +160,19 @@ public class MessageAdapter extends BaseAdapter {
                 holder2 = (ViewHolder2) v.getTag();
             }*/
 
+            holder2.photoView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, ImageActivity.class);
+                    holder2.photoView.buildDrawingCache();
+                    Bitmap bitmappic = holder2.photoView.getDrawingCache();
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    bitmappic.compress(Bitmap.CompressFormat.PNG, 90, byteArrayOutputStream);
+                    intent.putExtra("picsbytearraye", byteArrayOutputStream.toByteArray());
+                    mContext.startActivity(intent);
+                }
+            });
+
             holder2.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             holder2.senderName.setText(message.getUserName());
             boolean isPhoto = message.getPhotoUrl() != null;
@@ -179,6 +211,45 @@ public class MessageAdapter extends BaseAdapter {
         return message.getUserType().ordinal();
     }
 
+    private void downloadImages(final ImageView img1, final ImageView img2, final String messageurl, final ProgressBar progressBar) {
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                try {
+                    Glide.with(img1.getContext())
+                            .load(messageurl)
+                            .into(img2);
+                    progressBar.setVisibility(ProgressBar.GONE);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+    }
+
+    //alternatively
+    private static class PicturesViews extends AsyncTask {
+        private int position;
+        private ViewHolder1 viewHolder1;
+
+        @Override
+        protected Object doInBackground(Object[] params) {
+            //download image here
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            if (viewHolder1.position1 == position) {
+
+            }
+            super.onPostExecute(o);
+        }
+    }
+
     private class ViewHolder1 {
         public ImageView messageStatus;
         public TextView messageTextView;
@@ -187,6 +258,7 @@ public class MessageAdapter extends BaseAdapter {
         public LinearLayout photo_layout;
         public FrameLayout innerframre;
         public ProgressBar innerpb;
+        public int position1;
 
 
     }
@@ -199,6 +271,7 @@ public class MessageAdapter extends BaseAdapter {
         public LinearLayout photo;
         public FrameLayout outerframre;
         public ProgressBar outerpb;
+        public int position2;
 
     }
 }

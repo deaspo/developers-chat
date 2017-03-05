@@ -97,7 +97,9 @@
             android:label="Settings"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme" />
+
+        <activity android:name=".ImageActivity"></activity>
     </application>
 
 </manifest>

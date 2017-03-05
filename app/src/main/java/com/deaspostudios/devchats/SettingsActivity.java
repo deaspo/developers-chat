@@ -11,11 +11,11 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alexvasilkov.gestures.views.GestureImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.storage.images.FirebaseImageLoader;
@@ -39,10 +39,10 @@ import static com.deaspostudios.devchats.MainActivity.userpreferences;
 import static com.deaspostudios.devchats.MyPreferenceActivity.updateUser;
 
 public class SettingsActivity extends AppCompatActivity {
-    public static final int RC_PIC_PICKER = 5;
+    private static final int RC_PHOTO_PICKER = 2;
     private static String aboutstatus;
     private static TextView ustatus;
-    private static GestureImageView upic;
+    private static ImageView upic;
     String imgpath;
     private ProgressBar aboutpb;
     private String aboutname;
@@ -115,7 +115,7 @@ public class SettingsActivity extends AppCompatActivity {
          * variables from the view
          */
         TextView uname = (TextView) findViewById(R.id.aboutname);
-        upic = (GestureImageView) findViewById(R.id.aboutpic);
+        upic = (ImageView) findViewById(R.id.aboutpic);
         ustatus = (TextView) findViewById(R.id.aboutstatus);
         CardView cardView = (CardView) findViewById(R.id.cardstatus);
         CardView aboutmore = (CardView) findViewById(R.id.aboutmore);
@@ -146,8 +146,21 @@ public class SettingsActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("image/jpeg");
                 intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-                startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PIC_PICKER);
+                startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PHOTO_PICKER);
                 aboutpb.setVisibility(View.VISIBLE);
+            }
+        });
+
+        upic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), ImageActivity.class);
+                upic.buildDrawingCache();
+                Bitmap bitmappic = upic.getDrawingCache();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                bitmappic.compress(Bitmap.CompressFormat.PNG, 90, byteArrayOutputStream);
+                intent.putExtra("picsbytearraye", byteArrayOutputStream.toByteArray());
+                startActivity(intent);
             }
         });
 
@@ -196,7 +209,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_PIC_PICKER && resultCode == RESULT_OK) {
+        if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
             Uri selectedUmageUri = data.getData();
             /**
              * rename file to user id
