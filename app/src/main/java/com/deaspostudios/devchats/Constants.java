@@ -26,11 +26,26 @@ public final class Constants {
     public static final String KEY_PREF_SORT_ORDER_LISTS = "PERF_SORT_ORDER_LISTS";
 
 
+
     /**
      * Constant for sorting
      */
     public static final String ORDER_BY_KEY = "orderByPushKey";
     public static final String ORDER_BY_OWNER_EMAIL = "orderByOwnerEmail";
+
+    /**
+     * Constants for Settings
+     */
+    public static String USER_NAME = "USER_NAME";
+    public static String USER_STATUS = "Hey there am also a developer!";
+    public static String STATUS_VISIBLE = "true";
+    public static String USER_PIC = "USER_PIC";
+    public static String USER_BG = "USER_BG";
+    public static String USER_VISIBLE = "true";
+
+    /**
+     *
+     */
 
 
 }

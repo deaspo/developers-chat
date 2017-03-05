@@ -2,8 +2,11 @@ package ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -13,13 +16,16 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.deaspostudios.devchats.R;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -29,6 +35,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,10 +62,10 @@ import static fragment.fav.cDatabaseReference;
 public class Chat extends AppCompatActivity {
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    private ProgressBar chatspb;
     private ListView chatListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
-    private ProgressBar chatPb;
     private DatabaseReference senderRef;
     private ChildEventListener messageRefListener;
     private String selected_user, selected_user_id;
@@ -116,7 +124,7 @@ public class Chat extends AppCompatActivity {
         emojiButton = (ImageView) findViewById(R.id.emojiButton_chat);
         photopicker = (ImageButton) findViewById(R.id.chat_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_chat1);
-        chatPb = (ProgressBar) findViewById(R.id.chat_progressBar);
+        chatspb = (ProgressBar) findViewById(R.id.chatspb);
 
         /**
          * setting up the emoji keyboard
@@ -217,6 +225,28 @@ public class Chat extends AppCompatActivity {
             }
         });
 
+        /**
+         * click listener for imagers
+         */
+        chatListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                View outgoing = findViewById(R.id.outgoming_layout);
+                View incoming = findViewById(R.id.incoming_layout);
+                if (view == outgoing) {
+                    ImageView incomingImage = (ImageView) view.findViewById(R.id.photoView);
+                    if (incomingImage != null) {
+                        incomingImage.animate().scaleXBy(2.0f).scaleYBy(2.0f).setDuration(2000);
+                    }
+                } else if (view == incoming) {
+                    ImageView outgoingImage = (ImageView) findViewById(R.id.photoUser2);
+                    if (outgoingImage != null) {
+                        outgoingImage.animate().scaleXBy(2.0f).scaleYBy(2.0f).setDuration(2000);
+                    }
+                }
+            }
+        });
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.chat_toolbar);
         setSupportActionBar(toolbar);
@@ -224,7 +254,6 @@ public class Chat extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(selected_user);
         }
-        chatPb.setVisibility(ProgressBar.INVISIBLE);
 
         /**
          * button click listeners
@@ -317,8 +346,21 @@ public class Chat extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
+            chatspb.setVisibility(ProgressBar.VISIBLE);
             Uri selectedUmageUri = data.getData();
             StorageReference sender_photoRef = senderStorageRef.child(selectedUmageUri.getLastPathSegment());
+            /**
+             * compress the image
+             */
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedUmageUri);
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream);
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             //upload file to sender firebase
             sender_photoRef.putFile(selectedUmageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -350,7 +392,15 @@ public class Chat extends AppCompatActivity {
                     childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
 
                     cDatabaseReference.updateChildren(childUpdates);
+                    chatspb.setVisibility(ProgressBar.GONE);
 
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                    chatspb.setVisibility(ProgressBar.GONE);
                 }
             });
 

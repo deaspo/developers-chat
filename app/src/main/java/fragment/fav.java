@@ -5,13 +5,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.deaspostudios.devchats.R;
 import com.google.firebase.database.ChildEventListener;
@@ -22,8 +22,10 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
+import Widgets.DividerItemDecoration;
+import Widgets.ItemClickSupport;
+import adapter.RecyclerAdapterUser;
 import adapter.User;
-import adapter.UserAdapter;
 import ui.Chat;
 
 import static com.deaspostudios.devchats.MainActivity.mUsername;
@@ -38,7 +40,7 @@ import static com.deaspostudios.devchats.MainActivity.usersDbRef;
  * Use the {@link fav#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class fav extends Fragment {
+public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -46,18 +48,22 @@ public class fav extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     public static List<User> chattingUsers;
     //adapters for users
-    public static UserAdapter chattingAdapter;
+    public static RecyclerAdapterUser chattingAdapter;
     //firebase database instances
     public static FirebaseDatabase cFirebaseDatabase, chatsFirebaseDatabase;
     //    private static ValueEventListener chatUserEventListener;
     public static DatabaseReference cDatabaseReference, chatsUsersDb;
     private static ChildEventListener cChildEventListener, chatUserEventListener;
-    private static String userId;
-    private ListView chatListView;
-    private ProgressBar mProgressBar;
+    /**
+     *
+     */
+    private static SwipeRefreshLayout swipeRefreshLayout;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    //
+    private RecyclerView recyclerView;
+    //
 
     private OnFragmentInteractionListener mListener;
 
@@ -84,6 +90,10 @@ public class fav extends Fragment {
     }
 
     public static void attachChatUsersDb() {
+        // showing refresh animation before making http call
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
         if (chatUserEventListener == null) {
             chatUserEventListener = new ChildEventListener() {
                 @Override
@@ -115,6 +125,9 @@ public class fav extends Fragment {
             }
 
         }
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     public static void deatchChatDb() {
@@ -128,6 +141,10 @@ public class fav extends Fragment {
     }
 
     public static void addUserTotheList(final String uid) {
+        // showing refresh animation before making http call
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+        }
         usersChildEventListener = usersDbRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -137,14 +154,15 @@ public class fav extends Fragment {
                         if (chattingAdapter != null) {
                             if (chattingAdapter.objects != null) {
                                 if (!chattingAdapter.objects.contains(user)) {
-                                    chattingAdapter.add(user);
+                                    chattingUsers.add(user);
                                 }
                             } else {
-                                chattingAdapter.add(user);
+                                chattingUsers.add(user);
                             }
                         }
                     }
                 }
+                chattingAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -163,6 +181,10 @@ public class fav extends Fragment {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+        //usersDbRef.addChildEventListener(usersChildEventListener);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
 
     }
 
@@ -181,34 +203,51 @@ public class fav extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_fav, container, false);
         getActivity().getWindow().setBackgroundDrawable(getResources().getDrawable(R.drawable.background));
-        mProgressBar = (ProgressBar) view.findViewById(R.id.chatProgressBar);
-        chatListView = (ListView) view.findViewById(R.id.chatListView);
 
-        chatListView.setAdapter(chattingAdapter);
+        //initializes
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_layout_chat);
+        recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_chat);
 
-        // Initialize progress bar
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-
-
-        chatListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        //mMessageListView.setAdapter(groupsAdapter);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        //recyclerView.addOnItemTouchListener();
+        ItemClickSupport.addTo(recyclerView).setOnItemClickListener(new ItemClickSupport.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TextView selected = (TextView) view.findViewById(R.id.itemName);
-                TextView userid = (TextView) view.findViewById(R.id.user_uid);
-                String sele_name = selected.getText().toString();
-                String uid = userid.getText().toString();
-                if (sele_name != null && sele_name != mUsername && sele_name != "You") {
+            public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                User user = chattingUsers.get(position);
+                if (user != null && !user.getName().equals(mUsername) && !user.getName().equals("You")) {
                     Intent intent = new Intent(getActivity(), Chat.class);
-                    /* Get the user name and id using
-                     * ref and then grab the key.
+                    intent.putExtra("username", user.getName());
+                    intent.putExtra("userid", user.getUid());
+                    /**
+                     * start activity
                      */
-                    intent.putExtra("username", sele_name);
-                    intent.putExtra("userid", uid);
-                    /* Starts an active showing the details for the selected list */
                     startActivity(intent);
                 }
             }
+
         });
+
+        recyclerView.setAdapter(chattingAdapter);
+
+        swipeRefreshLayout.setOnRefreshListener(this);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeRefreshLayout.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        swipeRefreshLayout.setRefreshing(true);
+                                        attachChatUsersDb();
+                                    }
+                                }
+        );
+
         return view;
     }
 
@@ -244,34 +283,36 @@ public class fav extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        attachChatUsersDb();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (chattingAdapter.objects != null) {
-            chattingAdapter.objects.clear();
-        }
         attachChatUsersDb();
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (chattingAdapter != null) {
-            chattingAdapter.clear();
-        }
         deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
 
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (chattingAdapter != null) {
-            chattingAdapter.clear();
-        }
         deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onRefresh() {
+        attachChatUsersDb();
     }
 
     /**

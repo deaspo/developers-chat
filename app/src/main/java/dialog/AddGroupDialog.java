@@ -25,7 +25,6 @@ import adapter.Items_forums;
 
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
-import static fragment.group.attachGroupDatabaseListener;
 import static fragment.group.gDatabaseReference;
 
 /**
@@ -127,8 +126,6 @@ public class AddGroupDialog extends DialogFragment {
             DatabaseReference groupref = gDatabaseReference.getRef().push();
             final String groupId = groupref.getKey();
 
-            /* Hashmap for data uptodate */
-            HashMap<String, Object> updateGroupListData = new HashMap<>();
             /**
              * Set raw version of date to the ServerValue.TIMESTAMP value and save into
              * timestampCreatedMap
@@ -136,15 +133,10 @@ public class AddGroupDialog extends DialogFragment {
             HashMap<String, Object> timestampCreated = new HashMap<>();
             timestampCreated.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
 
-            /* Build the topic list */
-            Items_forums newTopicList = new Items_forums(userEnteredName, mUsername, groupId, mUserEmail, timestampCreated);
+            /* Build the group list */
+            Items_forums newGroupList = new Items_forums(userEnteredName, mUsername, groupId, mUserEmail, timestampCreated);
 
-            groupref.setValue(newTopicList);
-
-            /**
-             * db listener
-             */
-            attachGroupDatabaseListener();
+            groupref.setValue(newGroupList);
 
             /* Close the dialog fragment */
             AddGroupDialog.this.getDialog().cancel();

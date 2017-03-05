@@ -20,7 +20,9 @@
     <!-- Default screen margins Navigation drawer -->
     <dimen name="nav_header_vertical_spacing">16dp</dimen>
     <dimen name="nav_header_height">160dp</dimen>
-    <dimen name="profile_width">75dp</dimen>
-    <dimen name="profile_height">75dp</dimen>
+    <dimen name="profile_width">50dp</dimen>
+    <dimen name="profile_height">50dp</dimen>
+
+    <dimen name="tabsHeight">48dp</dimen>
 
 </resources>

@@ -23,6 +23,8 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_chit_chat" />
+    <include
+        layout="@layout/content_chit_chat"
+        android:layout_height="508dp" />
 
 </android.support.design.widget.CoordinatorLayout>
