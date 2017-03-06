@@ -605,7 +605,6 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     public void onClick(DialogInterface dialog, int id) {
                         tDatabaseReference.child(topicId).removeValue();
                         Intent i = new Intent(context, okClass);
-                        navItemIndex = 1;
                         startActivity(i);
                     }
                 });

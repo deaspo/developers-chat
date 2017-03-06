@@ -70,10 +70,10 @@
 
     <!-- Toolbar titles when navigation menu is selected -->
     <string-array name="nav_item_activity_titles">
-        <item>Chats</item>
         <item>Groups</item>
         <item>Topics</item>
-        <item>Activie Users</item>
+        <item>Chats</item>
+        <item>Active Users</item>
         <item>Settings</item>
     </string-array>
 
