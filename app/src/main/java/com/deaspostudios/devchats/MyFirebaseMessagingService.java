@@ -60,7 +60,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         //check if message contain notification payload
         if (remoteMessage.getNotification() != null) {
             Log.e(TAG, "Notification Body: " + remoteMessage.getNotification().getBody());
-            handleNotification(remoteMessage.getNotification().getBody());
+            sendNotification(remoteMessage.getNotification().getBody());
         }
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
@@ -94,7 +94,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
-            sendNotification(remoteMessage.getNotification().getBody());
+            //sendNotification(remoteMessage.getNotification().getBody());
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
@@ -103,7 +103,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
     // [END receive_message]
 
-    private void handleNotification(String message) {
+    /*private void handleNotification(String message) {
         if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
             // app is in foreground, broadcast the push message
             Intent pushNotification = new Intent(Constants.PUSH_NOTIFICATION);
@@ -116,7 +116,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }else{
             // If the app is in background, firebase itself handles the notification
         }
-    }
+    }*/
 
     private void handleDataMessage(JSONObject json) {
         Log.e(TAG, "push json: " + json.toString());
