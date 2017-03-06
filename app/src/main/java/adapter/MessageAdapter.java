@@ -90,6 +90,11 @@ public class MessageAdapter extends BaseAdapter {
             holder1.photo_layout = (LinearLayout) v.findViewById(R.id.ppic);
             holder1.innerpb = (ProgressBar) v.findViewById(R.id.incomingpb);
 
+            /**
+             * change message delivery status
+             */
+            message.setMessageStatus(Status.DELIVERED);
+
             v.setTag(holder1);
             /*if (view == null) {
 

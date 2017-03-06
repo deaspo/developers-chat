@@ -172,7 +172,6 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                                     @Override
                                     public void run() {
                                         swipeRefreshLayout.setRefreshing(true);
-                                        attachMessageListener();
                                     }
                                 }
         );
@@ -409,6 +408,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         detachMessageListener();
         detachForumListener();
         messageList.clear();
+        messageAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -417,6 +417,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         detachMessageListener();
         detachForumListener();
         messageList.clear();
+        messageAdapter.notifyDataSetChanged();
     }
 
     private void attachForumListener() {
@@ -446,20 +447,16 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     }
 
     private void attachMessageListener() {
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setRefreshing(true);
-        }
+        swipeRefreshLayout.setRefreshing(true);
 
         CurrentMessageRefListener = currentForumMessages.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Message message = dataSnapshot.getValue(Message.class);
                 messageList.add(message);
-                if (messageAdapter != null)
-                    messageAdapter.notifyDataSetChanged();
-
+                messageAdapter.notifyDataSetChanged();
+                swipeRefreshLayout.setRefreshing(false);
             }
-
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
             }
@@ -478,10 +475,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         });
 
         //currentForumMessages.addChildEventListener(CurrentMessageRefListener);
-
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setRefreshing(false);
-        }
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void detachMessageListener() {
@@ -578,7 +572,8 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     @Override
     public void onRefresh() {
-
+        messageList.clear();
+        attachMessageListener();
     }
 
     public static class AlertFragment extends DialogFragment {

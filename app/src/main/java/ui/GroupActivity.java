@@ -446,6 +446,9 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
 
             }
         });
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     private void attachMessageListener() {
@@ -459,8 +462,12 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                 Message message = dataSnapshot.getValue(Message.class);
                 //messageAdapter.add(message);
                 messageList.add(message);
-                if (messageAdapter != null)
+                if (messageAdapter != null) {
                     messageAdapter.notifyDataSetChanged();
+                }
+                if (swipeRefreshLayout != null) {
+                    swipeRefreshLayout.setRefreshing(false);
+                }
             }
 
             @Override
@@ -481,9 +488,6 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         });
         //currentForumMessages.addChildEventListener(CurrentMessageRefListener);
 
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setRefreshing(false);
-        }
     }
 
     private void detachMessageListener() {
@@ -571,6 +575,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     @Override
     public void onRefresh() {
+        messageList.clear();
         attachMessageListener();
     }
 
