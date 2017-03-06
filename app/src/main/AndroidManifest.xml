@@ -98,8 +98,7 @@
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme" />
-
-        <activity android:name=".ImageActivity"></activity>
+        <activity android:name=".ImageActivity" />
     </application>
 
 </manifest>
