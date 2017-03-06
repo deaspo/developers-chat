@@ -351,6 +351,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
                 //clear the input box
                 emojiconEditText.setText("");
+                //
             }
         });
 
