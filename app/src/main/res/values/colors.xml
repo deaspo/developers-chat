@@ -21,4 +21,10 @@
     <color name="black">#616161</color>
 
     <color name="light_black">#747474</color>
+
+    <!-- Upload activity -->
+    <color name="view_background">#e8ecfa</color>
+    <color name="btn_bg">#277bec</color>
+    <color name="txt_font">#4e5572</color>
+
 </resources>

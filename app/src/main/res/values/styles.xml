@@ -36,7 +36,6 @@
 
 
     <style name="Toolbar" parent="Widget.AppCompat.Light.ActionBar">
-        <item name="android:background">@color/black</item>
         <item name="android:textColorPrimary">@android:color/white</item>
     </style>
 

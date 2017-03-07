@@ -14,6 +14,8 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -279,8 +281,8 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         photopicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/jpeg");
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.setType("image/* video/*");
                 intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
                 startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PHOTO_PICKER);
             }
@@ -357,6 +359,26 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_chat, menu);
+        /**
+         * access the menu items
+         */
+        MenuItem file_upload = menu.findItem(R.id.action_file_upload);
+        MenuItem refresh = menu.findItem(R.id.action_refresh);
+        MenuItem record_audio = menu.findItem(R.id.action_audio);
+        MenuItem record_video = menu.findItem(R.id.action_capture);
+        MenuItem clear_conversation = menu.findItem(R.id.action_clear_conversation);
+        MenuItem view_contact = menu.findItem(R.id.action_view_contact);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
+
     private void changeEmojiKeyboardIcon(ImageView iconToBeChanged, int drawableResourceId) {
         iconToBeChanged.setImageResource(drawableResourceId);
     }
@@ -366,62 +388,73 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
             chatspb.setVisibility(ProgressBar.VISIBLE);
-            Uri selectedUmageUri = data.getData();
-            StorageReference sender_photoRef = senderStorageRef.child(selectedUmageUri.getLastPathSegment());
             /**
-             * compress the image
+             * check if it was image or video
              */
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedUmageUri);
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream);
+            Uri selectedUmageUri = data.getData();
+
+            if (selectedUmageUri.toString().contains("images")) {
+                //handle image
+                StorageReference sender_photoRef = senderStorageRef.child(selectedUmageUri.getLastPathSegment());
+                /**
+                 * compress the image
+                 */
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedUmageUri);
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream);
 
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            //upload file to sender firebase
-            sender_photoRef.putFile(selectedUmageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Uri downloadUri = taskSnapshot.getDownloadUrl();
-                    final Message message = new Message();
-                    message.setMessageStatus(Status.SENT);
-                    message.setText(null);
-                    message.setUserName(mUsername);
-                    message.setUserId(mUID);
-                    message.setUserType(UserType.SELF);
-                    message.setPhotoUrl(downloadUri.toString());
-                    message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
-                    //chat_messageList.add(message);
-                    if (chat_messageAdapter != null)
-                        chat_messageAdapter.notifyDataSetChanged();
-
-                    /**
-                     * update without overwriting
-                     */
-                    sendKey = cDatabaseReference.push().getKey();
-                    final Map<String, Object> childUpdates = new HashMap<>();
-
-                    Map<String, Object> msgValues = message.toMap();
-
-                    childUpdates.put(mUID + "/" + "conversations" + "/" + selected_user_id + "/" + "messages" + "/" + sendKey, msgValues);
-
-                    childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
-
-                    cDatabaseReference.updateChildren(childUpdates);
-                    chatspb.setVisibility(ProgressBar.GONE);
-
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
+                } catch (IOException e) {
                     e.printStackTrace();
-                    chatspb.setVisibility(ProgressBar.GONE);
                 }
-            });
+
+                //upload file to sender firebase
+                sender_photoRef.putFile(selectedUmageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Uri downloadUri = taskSnapshot.getDownloadUrl();
+                        final Message message = new Message();
+                        message.setMessageStatus(Status.SENT);
+                        message.setText(null);
+                        message.setUserName(mUsername);
+                        message.setUserId(mUID);
+                        message.setUserType(UserType.SELF);
+                        message.setPhotoUrl(downloadUri.toString());
+                        message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
+                        //chat_messageList.add(message);
+                        if (chat_messageAdapter != null)
+                            chat_messageAdapter.notifyDataSetChanged();
+
+                        /**
+                         * update without overwriting
+                         */
+                        sendKey = cDatabaseReference.push().getKey();
+                        final Map<String, Object> childUpdates = new HashMap<>();
+
+                        Map<String, Object> msgValues = message.toMap();
+
+                        childUpdates.put(mUID + "/" + "conversations" + "/" + selected_user_id + "/" + "messages" + "/" + sendKey, msgValues);
+
+                        childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
+
+                        cDatabaseReference.updateChildren(childUpdates);
+                        chatspb.setVisibility(ProgressBar.GONE);
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
+                        e.printStackTrace();
+                        chatspb.setVisibility(ProgressBar.GONE);
+                    }
+                });
+
+            } else  if (selectedUmageUri.toString().contains("video")) {
+                //handle video
+                Toast.makeText(getApplicationContext(),"Uploading video, work in progress",Toast.LENGTH_LONG).show();
+            }
 
         }
     }

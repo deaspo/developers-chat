@@ -95,6 +95,21 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
     private FirebaseStorage groupStorage;
     private StorageReference groupStorageRef;
 
+    /**
+     * Uploading media files
+     * @param savedInstanceState
+     */
+
+    // Camera activity request codes
+    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
+
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
+
+    private Uri fileUri; // file url to store image/video
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
