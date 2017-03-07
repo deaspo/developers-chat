@@ -469,6 +469,11 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                         startActivity(new Intent(MainActivity.this, AboutUs.class));
                         drawer.closeDrawers();
                         break;
+                    case R.id.nav_feedback:
+                        //launch feed send
+                        sendFeedback();
+                        drawer.closeDrawers();
+                        break;
                     default:
                         navItemIndex = 0;
                         viewPager.setCurrentItem(0, true);
@@ -509,6 +514,17 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //calling sync state is necessary or else your hamburger icon wont show up
         actionBarDrawerToggle.syncState();
+    }
+
+    private void sendFeedback() {
+        Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+        emailIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        emailIntent.setType("vnd.android.cursor.item/email");
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] {"info@deaspostudios.com"});
+        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Your Feedback is Appreciated");
+        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "");
+        emailIntent.putExtra(Intent.EXTRA_HTML_TEXT, "<br> <p>Let us joing and help develop each other. It takes only a minute</p>");
+        startActivity(Intent.createChooser(emailIntent, "Send mail using..."));
     }
 
     private void setupViewPager(ViewPager viewPager) {
