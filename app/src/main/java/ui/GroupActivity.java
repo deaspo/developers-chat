@@ -5,8 +5,10 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -15,6 +17,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +31,7 @@ import android.widget.PopupWindow.OnDismissListener;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.deaspostudios.devchats.Constants;
 import com.deaspostudios.devchats.MainActivity;
 import com.deaspostudios.devchats.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -45,8 +49,13 @@ import com.google.firebase.storage.UploadTask;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import android.os.Environment;
 
 import activity.Status;
+import activity.UploadActivity_Group;
 import activity.UserType;
 import adapter.Items_forums;
 import adapter.Message;
@@ -88,17 +97,19 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
     /**
      * using the  new adapter
      */
-    private MessageAdapter messageAdapter;
+    public static MessageAdapter messageAdapter_group;
     private ArrayList<Message> messageList;
     private boolean currentUserIsCreator = false;
     //Firebase storage & Database
     private FirebaseStorage groupStorage;
-    private StorageReference groupStorageRef;
+    public static StorageReference groupStorageRef;
 
     /**
      * Uploading media files
      * @param savedInstanceState
      */
+    // LogCat tag
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     // Camera activity request codes
     private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
@@ -156,12 +167,149 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
          * initialize the adapter
          */
         messageList = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messageList, this);
+        messageAdapter_group = new MessageAdapter(messageList, this);
 
-        groupListView.setAdapter(messageAdapter);
+        groupListView.setAdapter(messageAdapter_group);
 
 
     }
+
+    /**
+     * Launching app to capture photo
+     * @param items_forums
+     * @param currentUserEmail
+     * @return
+     */
+    /**
+     * Checking device has camera hardware or not
+     * */
+    private boolean isDeviceSupportCamera() {
+        if (getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA)) {
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
+    }
+
+    /**
+     * Launching camera app to capture image
+     */
+    private void captureImage() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+
+        // start the image capture Intent
+        startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
+    }
+
+    /**
+     * Launching camera app to record video
+     */
+    private void recordVideo() {
+        Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+
+        fileUri = getOutputMediaFileUri(MEDIA_TYPE_VIDEO);
+
+        // set video quality
+        intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file
+        // name
+
+        // start the video capture Intent
+        startActivityForResult(intent, CAMERA_CAPTURE_VIDEO_REQUEST_CODE);
+    }
+
+    /**
+     * Here we store the file url as it will be null after returning from camera
+     * app
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // save file url in bundle as it will be null on screen orientation
+        // changes
+        outState.putParcelable("file_uri", fileUri);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // get the file url
+        fileUri = savedInstanceState.getParcelable("file_uri");
+    }
+
+
+    /**
+     * ------------ Helper Methods ----------------------
+     * */
+
+    /**
+     * Creating file uri to store image/video
+     */
+    public Uri getOutputMediaFileUri(int type) {
+        return Uri.fromFile(getOutputMediaFile(type));
+    }
+
+    /**
+     * returning image / video
+     */
+    private static File getOutputMediaFile(int type) {
+
+        // External sdcard location
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                Constants.IMAGE_DIRECTORY_NAME);
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d(TAG, "Oops! Failed create "
+                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
+                Locale.getDefault()).format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "IMG_" + timeStamp + ".jpg");
+        } else if (type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "VID_" + timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
+
+    private void launchUploadActivity(boolean isImage){
+        Intent i = new Intent(GroupActivity.this, UploadActivity_Group.class);
+        i.putExtra("filePath", fileUri.toString());
+        i.putExtra("isImage", isImage);
+        i.putExtra("groupid", groupId);
+        startActivity(i);
+    }
+
+    /**
+     * end of capture/record
+     * @param items_forums
+     * @param currentUserEmail
+     * @return
+     */
 
     private boolean checkOwnership(Items_forums items_forums, String currentUserEmail) {
         return (items_forums.getCreated_by() != null && items_forums.owner_email.equals(currentUserEmail));
@@ -347,8 +495,8 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                 message.setUserId(mUID);
                 message.setUserType(UserType.SELF);
                 message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
-                if (messageAdapter != null)
-                    messageAdapter.notifyDataSetChanged();
+                if (messageAdapter_group != null)
+                    messageAdapter_group.notifyDataSetChanged();
                 currentForumMessages.push().setValue(message);
                 // clear the input box
                 emojiconEditText.setText("");
@@ -401,6 +549,12 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
             case R.id.action_refresh_group:
                 attachMessageListener();
                 return true;
+            case R.id.action_capture:
+                captureImage();
+                return true;
+            case R.id.action_record:
+                recordVideo();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -424,7 +578,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         detachMessageListener();
         detachForumListener();
         messageList.clear();
-        messageAdapter.notifyDataSetChanged();
+        messageAdapter_group.notifyDataSetChanged();
 
     }
 
@@ -434,7 +588,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         detachMessageListener();
         detachForumListener();
         messageList.clear();
-        messageAdapter.notifyDataSetChanged();
+        messageAdapter_group.notifyDataSetChanged();
     }
 
     private void attachForumListener() {
@@ -477,8 +631,8 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                 Message message = dataSnapshot.getValue(Message.class);
                 //messageAdapter.add(message);
                 messageList.add(message);
-                if (messageAdapter != null) {
-                    messageAdapter.notifyDataSetChanged();
+                if (messageAdapter_group != null) {
+                    messageAdapter_group.notifyDataSetChanged();
                 }
                 if (swipeRefreshLayout != null) {
                     swipeRefreshLayout.setRefreshing(false);
@@ -533,9 +687,9 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
             forumspb.setVisibility(ProgressBar.VISIBLE);
             Uri selectedUmageUri = data.getData();
-            StorageReference topic_photoRef = groupStorageRef.child(selectedUmageUri.getLastPathSegment());
+            StorageReference group_photoRef = groupStorageRef.child(selectedUmageUri.getLastPathSegment());
 
-            topic_photoRef.putFile(selectedUmageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            group_photoRef.putFile(selectedUmageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     Uri downloadUri = taskSnapshot.getDownloadUrl();
@@ -545,10 +699,11 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                     message.setUserName(mUsername);
                     message.setUserId(mUID);
                     message.setPhotoUrl(downloadUri.toString());
+                    message.setVideoUrl(null);
                     message.setUserType(UserType.SELF);
                     message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
-                    if (messageAdapter != null)
-                        messageAdapter.notifyDataSetChanged();
+                    if (messageAdapter_group != null)
+                        messageAdapter_group.notifyDataSetChanged();
                     currentForumMessages.push().setValue(message);
                     forumspb.setVisibility(View.GONE);
 
@@ -564,6 +719,48 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
             });
 
 
+        }else if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+
+                // successfully captured the image
+                // launching upload activity
+                launchUploadActivity(true);
+
+
+            } else if (resultCode == RESULT_CANCELED) {
+
+                // user cancelled Image capture
+                Toast.makeText(getApplicationContext(),
+                        "User cancelled image capture", Toast.LENGTH_SHORT)
+                        .show();
+
+            } else {
+                // failed to capture image
+                Toast.makeText(getApplicationContext(),
+                        "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
+                        .show();
+            }
+
+        } else if (requestCode == CAMERA_CAPTURE_VIDEO_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+
+                // video successfully recorded
+                // launching upload activity
+                launchUploadActivity(false);
+
+            } else if (resultCode == RESULT_CANCELED) {
+
+                // user cancelled recording
+                Toast.makeText(getApplicationContext(),
+                        "User cancelled video recording", Toast.LENGTH_SHORT)
+                        .show();
+
+            } else {
+                // failed to record video
+                Toast.makeText(getApplicationContext(),
+                        "Sorry! Failed to record video", Toast.LENGTH_SHORT)
+                        .show();
+            }
         }
     }
 

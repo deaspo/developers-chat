@@ -10,9 +10,9 @@
 
     <!-- To display picture taken -->
 
-    <ImageView
+    <com.alexvasilkov.gestures.views.GestureImageView
         android:id="@+id/imgPreview"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="200dp"
         android:visibility="gone"
         android:layout_marginTop="15dp"/>
@@ -21,7 +21,7 @@
 
     <VideoView
         android:id="@+id/videoPreview"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="400dp"
         android:visibility="gone"
         android:layout_marginTop="15dp"/>

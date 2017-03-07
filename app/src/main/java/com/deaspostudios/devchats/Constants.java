@@ -59,4 +59,10 @@ public final class Constants {
     public static final int PUSH_TYPE_USER = 2;
 
 
+    /**
+     * upload variables
+     */
+    // Directory name to store captured images and videos
+    public static final String IMAGE_DIRECTORY_NAME = "Android File Upload";
+
 }

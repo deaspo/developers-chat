@@ -28,7 +28,8 @@
     <string name="action_share">Share</string>
     <string name="action_clear">Clear conversation</string>
     <string name="action_copy">Copy</string>
-    <string name="action_record">Video/Photo capture</string>
+    <string name="action_record">Record video</string>
+    <string name="action_capture">Capture image</string>
     <string name="action_audio">Record audio</string>
     <string name="action_view_contact">View contact</string>
     <string name="action_view_forum">View details</string>
