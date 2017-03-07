@@ -23,8 +23,16 @@
     <!-- Menu Items -->
     <string name="action_edit_topic_name">Edit Topic name</string>
     <string name="action_edit_group_name">Edit Group name</string>
-    <string name="action_set_status">Set status</string>
-
+    <string name="action_upload_file">Upload file</string>
+    <string name="action_set_status">Set new status</string>
+    <string name="action_share">Share</string>
+    <string name="action_clear">Clear conversation</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_record">Record video</string>
+    <string name="action_capture">Capture image</string>
+    <string name="action_audio">Record audio</string>
+    <string name="action_view_contact">View contact</string>
+    <string name="action_view_forum">View details</string>
 
     <!-- Edit and Add Group Dialogs -->
     <string name="positive_button_add_group">Add new group</string>
@@ -70,10 +78,10 @@
 
     <!-- Toolbar titles when navigation menu is selected -->
     <string-array name="nav_item_activity_titles">
-        <item>Chats</item>
         <item>Groups</item>
         <item>Topics</item>
-        <item>Activie Users</item>
+        <item>Chats</item>
+        <item>Active Users</item>
         <item>Settings</item>
     </string-array>
 
@@ -96,5 +104,9 @@
         <item>360</item>
         <item>-1</item>
     </string-array>
+
+
+    <!-- upload -->
+    <string name="btnUploadToServer">Upload to Server</string>
 
 </resources>

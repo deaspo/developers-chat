@@ -11,6 +11,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -18,7 +19,9 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -141,6 +144,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private MenuItem searchMenuItem;
     private SearchView searchView;
     private View navHeader;
+
+    // toolbar titles respected to selected nav menu item
+    private String[] activityTitles;
+    // flag to load home fragment when user presses back key
+    private boolean shouldLoadHomeFragOnBackPress = true;
+    private Handler mHandler;
     /**
      * tab icons
      *
@@ -185,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
      * Setup receive notifications
      * @param savedInstanceState
      */
-    private BroadcastReceiver pushbroadcastReceiver,mRegistrationBroadcastReceiver;
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
     private TextView txtMessage;
 
     @Override
@@ -258,8 +267,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
 
-        setUpNavigationView();
-
         // Navigation view header
         navHeader = navigationView.getHeaderView(0);
 
@@ -267,6 +274,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         imgNavHeaderBg = (ImageView) navHeader.findViewById(R.id.img_header_bg);
         username = (TextView) navHeader.findViewById(R.id.name);
         status = (TextView) navHeader.findViewById(R.id.status);
+
+        // load toolbar titles from string resources
+        activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
+
+        loadProfile();
+
+        setUpNavigationView();
+
+        mHandler = new Handler();
 
         //setting up the tabs
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -334,15 +350,74 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         this.registerReceiver(connection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         userToken();
 
-        loadProfile();
-        pushbroadcastReceiver = new BroadcastReceiver() {
+    }
+
+    private void loadHomeFragment() {
+        // selecting appropriate nav menu item
+        selectNavMenu();
+
+        // set toolbar title
+        setToolbarTitle();
+
+        // if user select the current navigation menu again, don't do anything
+        // just close the navigation drawer
+        if (getSupportFragmentManager().findFragmentByTag(CURRENT_TAG) != null) {
+            drawer.closeDrawers();
+            return;
+        }
+
+        // Sometimes, when fragment has huge data, screen seems hanging
+        // when switching between navigation menus
+        // So using runnable, the fragment is loaded with cross fade effect
+        // This effect can be seen in GMail app
+        Runnable mPendingRunnable = new Runnable() {
             @Override
-            public void onReceive(Context context, Intent intent) {
-                String message = intent.getStringExtra("message");
-                String from = intent.getStringExtra("from");
-//                Log.i(TAG, "Receiving message: " + message + ", from " + from);
+            public void run() {
+                // update the main content by replacing fragments
+                Fragment fragment = getHomeFragment();
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
+                        android.R.anim.fade_out);
+                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG);
+                fragmentTransaction.commitAllowingStateLoss();
             }
         };
+
+        // If mPendingRunnable is not null, then add to the message queue
+        /*if (mPendingRunnable != null) {
+            mHandler.post(mPendingRunnable);
+        }
+*/
+        //Closing drawer on item click
+        drawer.closeDrawers();
+    }
+
+    private void setToolbarTitle() {
+        getSupportActionBar().setTitle(activityTitles[navItemIndex]);
+    }
+
+    private void selectNavMenu() {
+        navigationView.getMenu().getItem(navItemIndex).setChecked(true);
+    }
+
+    private Fragment getHomeFragment() {
+        switch (navItemIndex) {
+            case 0:
+                group group = new group();
+                return group;
+            case 1:
+                topic topic = new topic();
+                return topic;
+            case 2:
+                fav fav = new fav();
+                return fav;
+            case 3:
+                user user = new user();
+                return user;
+            default:
+                return new group();
+
+        }
     }
 
     /**
@@ -395,8 +470,9 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                         drawer.closeDrawers();
                         break;
                     default:
-                        CURRENT_TAG = TAG_CHAT;
-                        viewPager.setCurrentItem(navItemIndex, true);
+                        navItemIndex = 0;
+                        viewPager.setCurrentItem(0, true);
+                        drawer.closeDrawers();
                         break;
                 }
 
@@ -407,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                     menuItem.setChecked(true);
                 }
                 menuItem.setChecked(true);
-
+                loadHomeFragment();
                 return true;
             }
         });
@@ -505,6 +581,29 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     }
 
     @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawers();
+            return;
+        }
+
+        // This code loads home fragment when back key is pressed
+        // when user is in other fragment than home
+        if (shouldLoadHomeFragOnBackPress) {
+            // checking if user is on other navigation menu
+            // rather than home
+            if (navItemIndex != 0) {
+                navItemIndex = 0;
+                CURRENT_TAG = TAG_GROUP;
+                loadHomeFragment();
+                return;
+            }
+        }
+
+        super.onBackPressed();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
@@ -519,16 +618,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         // clear the notification area when the app is opened
         NotificationUtils.clearNotifications(getApplicationContext());
-        LocalBroadcastManager.getInstance(this).registerReceiver(pushbroadcastReceiver,
-                new IntentFilter("new-push-event"));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(pushbroadcastReceiver);
-
         if (mAuthStateListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
@@ -667,16 +762,23 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                 if (position == 0) {
                     pageItemIndex = 0;
                     invalidateOptionsMenu();
+                    navItemIndex = 0;
                 } else if (position == 1) {
                     pageItemIndex = 1;
                     invalidateOptionsMenu();
+                    navItemIndex = 1;
                 } else if (position == 2) {
                     pageItemIndex = 2;
                     invalidateOptionsMenu();
+                    navItemIndex = 2;
                 } else if (position == 3) {
                     pageItemIndex = 3;
                     invalidateOptionsMenu();
+                    navItemIndex = 3;
                 }
+                //set the toolbar titles
+                // set toolbar title
+                setToolbarTitle();
             }
 
             @Override
