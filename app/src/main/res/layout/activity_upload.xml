@@ -3,8 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@color/view_background"
-    android:orientation="vertical"
-    android:padding="10dp" >
+    android:orientation="vertical" >
 
 
 
@@ -13,18 +12,19 @@
     <com.alexvasilkov.gestures.views.GestureImageView
         android:id="@+id/imgPreview"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:visibility="gone"
-        android:layout_marginTop="15dp"/>
+        android:layout_marginTop="15dp"
+        android:scaleType="fitXY"
+        android:layout_height="300dp"
+        android:visibility="gone" />
 
     <!-- Videoview to preview recorded video -->
 
     <VideoView
         android:id="@+id/videoPreview"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_marginTop="15dp"
         android:visibility="gone"
-        android:layout_marginTop="15dp"/>
+        android:layout_height="400dp" />
 
     <TextView
         android:id="@+id/txtPercentage"
@@ -38,11 +38,11 @@
 
     <ProgressBar
         android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
         android:layout_width="fill_parent"
         android:layout_height="20dp"
         android:layout_marginBottom="35dp"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/btnUpload"

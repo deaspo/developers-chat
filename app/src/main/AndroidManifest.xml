@@ -104,6 +104,14 @@
             android:name="activity.UploadActivity_Group"
             android:label="Upload media"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name="activity.UploadActivity_Topic"
+            android:label="Upload media"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name="activity.UploadActivity_Chat"
+            android:label="Upload media"
+            android:theme="@style/AppTheme" />
         <activity android:name=".VideoActivity"></activity>
     </application>
 

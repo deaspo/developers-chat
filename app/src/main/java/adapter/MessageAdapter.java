@@ -190,6 +190,7 @@ public class MessageAdapter extends BaseAdapter {
             holder2.photoView = (ImageView) v.findViewById(R.id.photoView);
             holder2.senderName = (TextView) v.findViewById(R.id.other_user);
             holder2.photo = (LinearLayout) v.findViewById(R.id.photo);
+            holder2.videoView2 = (VideoView) v.findViewById(R.id.videouser);
             holder2.outerpb = (ProgressBar) v.findViewById(R.id.outgoingpb);
 
             v.setTag(holder2);

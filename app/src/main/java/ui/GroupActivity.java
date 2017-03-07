@@ -198,6 +198,12 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
      * Launching camera app to capture image
      */
     private void captureImage() {
+        if (!isDeviceSupportCamera()) {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry! Your device doesn't support camera",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
@@ -212,6 +218,12 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
      * Launching camera app to record video
      */
     private void recordVideo() {
+        if (!isDeviceSupportCamera()) {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry! Your device doesn't support camera",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
         fileUri = getOutputMediaFileUri(MEDIA_TYPE_VIDEO);

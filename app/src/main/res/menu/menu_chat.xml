@@ -29,6 +29,13 @@
         android:icon="@drawable/ic_videocam_black_24dp"
         android:orderInCategory="100"
         app:showAsAction="ifRoom"
+        android:title="@string/action_capture" />
+
+    <item
+        android:id="@+id/action_record"
+        android:icon="@drawable/ic_videocam_black_24dp"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
         android:title="@string/action_record" />
 
     <item
