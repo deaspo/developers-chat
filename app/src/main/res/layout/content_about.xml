@@ -9,6 +9,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/about_txt"
         android:textAlignment="center"
+        android:layout_marginTop="60dp"
         android:textSize="18sp"
         android:textStyle="normal|bold" />
 

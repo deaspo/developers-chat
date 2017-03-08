@@ -20,12 +20,14 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -328,6 +330,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     private void InitializeScreen() {
         forumListView = (ListView) findViewById(R.id.forum_list_view);
+        registerForContextMenu(forumListView);
         emojiButton = (ImageView) findViewById(R.id.forum_emojiButton);
         final EmojiconEditText emojiconEditText = (EmojiconEditText) findViewById(R.id.emojicon_edit_text);
         final View rootView = findViewById(R.id.root_topic);
@@ -528,6 +531,26 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         iconToBeChanged.setImageResource(drawableResourceId);
     }
 
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId() == R.id.forum_list_view) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+//            menu.setHeaderTitle("Options");
+            String[] menuItems = getResources().getStringArray(R.array.longpress);
+            for (int i = 0; i<menuItems.length; i++) {
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        int menuItemIndex = item.getItemId();
+        switch (menuItemIndex) {
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -524,7 +524,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Your Feedback is Appreciated");
         emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "");
         emailIntent.putExtra(Intent.EXTRA_HTML_TEXT, "<br> <p>Let us joing and help develop each other. It takes only a minute</p>");
-        startActivity(Intent.createChooser(emailIntent, "Send mail using..."));
+        startActivity(Intent.createChooser(emailIntent, "Send feedback using..."));
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -678,13 +678,16 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         //mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
         mUserphoto = userpreferences.getString("userpic", null);
-        mStatus = userpreferences.getString("userstatus", "Hey there am also a developer!");
+        if (mStatus == null) {
+            mStatus = userpreferences.getString("userstatus", "Hey there am also a developer!");
+        }
 
         if (mStatusVisble == null || mVisible == null) {
             mStatusVisble = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
             mVisible = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
         }
         setDefaults();
+        loadDetailsDrawer();
         addUser(username, useremail, uid);
         setUsername(mUsername, useremail, uid);
         //chats
@@ -930,11 +933,14 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         System.out.println("Token for Polycarp " + token);
     }
 
-    public void loadProfile() {
+    private void loadDetailsDrawer() {
         //set the user name
         username.setText(mUsername);
         //set the ststus
         status.setText(mStatus);
+    }
+
+    public void loadProfile() {
         // Loading profile image
         if (mUserphoto == null) {
             Glide.with(this).using(new FirebaseImageLoader()).load(imageRef)
