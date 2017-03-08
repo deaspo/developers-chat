@@ -16,6 +16,7 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -295,6 +296,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
     private void InitializeScreen() {
         chatListView = (ListView) findViewById(R.id.chat_list_view);
+        registerForContextMenu(chatListView);
         final EmojiconEditText emojiconEditText = (EmojiconEditText) findViewById(R.id.emojicon_edit_text);
         final View rootView = findViewById(R.id.root_view);
         emojiButton = (ImageView) findViewById(R.id.emojiButton_chat);
@@ -529,6 +531,27 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
             }
         });
 
+    }
+
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId() == R.id.chat_list_view) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+//            menu.setHeaderTitle("Options");
+            String[] menuItems = getResources().getStringArray(R.array.longpress);
+            for (int i = 0; i<menuItems.length; i++) {
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        int menuItemIndex = item.getItemId();
+        switch (menuItemIndex) {
+            default:
+                return super.onContextItemSelected(item);
+        }
     }
 
     @Override
