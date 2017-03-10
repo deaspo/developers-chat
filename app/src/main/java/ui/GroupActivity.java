@@ -509,8 +509,6 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                 if (messageAdapter_group != null)
                     messageAdapter_group.notifyDataSetChanged();
                 currentForumMessages.push().setValue(message);
-                // clear the input box
-                emojiconEditText.setText("");
                 /**
                  * subcribes the sender to the topic group
                  */
@@ -520,6 +518,8 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                 // [END subscribe_topics]
                 //send message to all the topic subscribers
                 sendTopicNotification(escapeSpace(groupId), emojiconEditText.getText().toString());
+                // clear the input box
+                emojiconEditText.setText("");
             }
         });
 
