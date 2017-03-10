@@ -1057,6 +1057,4 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             }
         }
     }
-
-
 }

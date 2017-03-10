@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -48,13 +49,12 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.Locale;
-import android.os.Environment;
 
 import activity.Status;
 import activity.UploadActivity_Group;
@@ -73,6 +73,7 @@ import github.ankushsachdeva.emojicon.emoji.Emojicon;
 import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.sendTopicNotification;
 import static com.deaspostudios.devchats.MainActivity.viewPager;
 import static fragment.group.gDatabaseReference;
 
@@ -81,8 +82,24 @@ import static fragment.group.gDatabaseReference;
  */
 
 public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
     private static final int RC_PHOTO_PICKER = 2;
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
+    /**
+     * Uploading media files
+     * @param savedInstanceState
+     */
+    // LogCat tag
+    private static final String TAG = MainActivity.class.getSimpleName();
+    // Camera activity request codes
+    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
+    /**
+     * using the  new adapter
+     */
+    public static MessageAdapter messageAdapter_group;
+    public static StorageReference groupStorageRef;
     private static DatabaseReference currentForumRef, currentForumMessages;
     private static String groupId;
     private static SwipeRefreshLayout swipeRefreshLayout;
@@ -93,35 +110,57 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
     private String userMail;
     private String groupName;
     private ValueEventListener currentForumRefListener;
-
     //private MessageAdapter messageAdapter;
     private ChildEventListener CurrentMessageRefListener;
-    /**
-     * using the  new adapter
-     */
-    public static MessageAdapter messageAdapter_group;
     private ArrayList<Message> messageList;
     private boolean currentUserIsCreator = false;
     //Firebase storage & Database
     private FirebaseStorage groupStorage;
-    public static StorageReference groupStorageRef;
-
-    /**
-     * Uploading media files
-     * @param savedInstanceState
-     */
-    // LogCat tag
-    private static final String TAG = MainActivity.class.getSimpleName();
-
-    // Camera activity request codes
-    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
-    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
-
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    public static final int MEDIA_TYPE_VIDEO = 2;
-
     private Uri fileUri; // file url to store image/video
 
+    /**
+     * returning image / video
+     */
+    private static File getOutputMediaFile(int type) {
+
+        // External sdcard location
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                Constants.IMAGE_DIRECTORY_NAME);
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d(TAG, "Oops! Failed create "
+                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
+                Locale.getDefault()).format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "IMG_" + timeStamp + ".jpg");
+        } else if (type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "VID_" + timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
+
+    /**
+     * Launching app to capture photo
+     * @param items_forums
+     * @param currentUserEmail
+     * @return
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,12 +215,6 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     }
 
-    /**
-     * Launching app to capture photo
-     * @param items_forums
-     * @param currentUserEmail
-     * @return
-     */
     /**
      * Checking device has camera hardware or not
      * */
@@ -253,6 +286,11 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         outState.putParcelable("file_uri", fileUri);
     }
 
+
+    /**
+     * ------------ Helper Methods ----------------------
+     * */
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -261,53 +299,11 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         fileUri = savedInstanceState.getParcelable("file_uri");
     }
 
-
-    /**
-     * ------------ Helper Methods ----------------------
-     * */
-
     /**
      * Creating file uri to store image/video
      */
     public Uri getOutputMediaFileUri(int type) {
         return Uri.fromFile(getOutputMediaFile(type));
-    }
-
-    /**
-     * returning image / video
-     */
-    private static File getOutputMediaFile(int type) {
-
-        // External sdcard location
-        File mediaStorageDir = new File(
-                Environment
-                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                Constants.IMAGE_DIRECTORY_NAME);
-
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.d(TAG, "Oops! Failed create "
-                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
-                Locale.getDefault()).format(new Date());
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                    + "IMG_" + timeStamp + ".jpg");
-        } else if (type == MEDIA_TYPE_VIDEO) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                    + "VID_" + timeStamp + ".mp4");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
     }
 
     private void launchUploadActivity(boolean isImage){
@@ -522,6 +518,8 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
 
                 FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
                 // [END subscribe_topics]
+                //send message to all the topic subscribers
+                sendTopicNotification(escapeSpace(groupId), emojiconEditText.getText().toString());
             }
         });
 
