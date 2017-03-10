@@ -55,7 +55,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import adapter.Items_forums;
 import adapter.RecyclerAdapterGroup;
@@ -170,6 +172,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
      */
     private NavigationView navigationView;
     private DrawerLayout drawer;
+    /**
+     * Setup receive notifications
+     * @param savedInstanceState
+     */
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
+    private TextView txtMessage;
 
     public static void detachUsersListeners() {
         if (usersChildEventListener != null) {
@@ -190,12 +198,16 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         return name.replace(" ", "_");
     }
 
-    /**
-     * Setup receive notifications
-     * @param savedInstanceState
-     */
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
-    private TextView txtMessage;
+    public static void sendTopicNotification(String topicid, String message) {
+        FirebaseDatabase topicsDb = FirebaseDatabase.getInstance();
+        final DatabaseReference topicsRef = topicsDb.getReference().child("topicsRequest");
+
+        Map notification = new HashMap<>();
+        notification.put("topicid", topicid);
+        notification.put("message", message);
+
+        topicsRef.push().setValue(notification);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -254,6 +266,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //users
         usersDbRef = usersDb.getReference().child("users");
+
 
         /**
          * setting up  the chats viewer
@@ -768,7 +781,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         }
         return true;
     }
-
 
     private void setViewPager() {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
