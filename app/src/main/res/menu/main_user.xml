@@ -3,6 +3,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/app_bar_search_user"
+        android:icon="@drawable/ic_find_in_page_black_24dp"
+        android:orderInCategory="100"
+        android:title="Search"
+        android:visible="true"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_refresh"
+        android:orderInCategory="100"
+        android:title="@string/action_refresh"
+        android:visible="true"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_setting"
         android:orderInCategory="100"
         android:title="@string/action_setting"

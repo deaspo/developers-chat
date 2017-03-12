@@ -27,14 +27,22 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import static com.deaspostudios.devchats.MainActivity.mUsername;
+
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
+    private NotificationUtils notificationUtils;
 
     /**
      * Called when message is received.
@@ -44,15 +52,23 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     // [START receive_message]
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // [START_EXCLUDE]
-        // There are two types of messages data messages and notification messages. Data messages are handled
-        // here in onMessageReceived whether the app is in the foreground or background. Data messages are the type
-        // traditionally used with GCM. Notification messages are only received here in onMessageReceived when the app
-        // is in the foreground. When the app is in the background an automatically generated notification is displayed.
-        // When the user taps on the notification they are returned to the app. Messages containing both notification
-        // and data payloads are treated as notification messages. The Firebase console always sends notification
-        // messages. For more see: https://firebase.google.com/docs/cloud-messaging/concept-options
-        // [END_EXCLUDE]
+        if (remoteMessage == null) {return;}
+        //check if message contain notification payload
+        if (remoteMessage.getNotification() != null) {
+            Log.e(TAG, "Notification Body: " + remoteMessage.getNotification().getBody());
+            //sendNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
+        }
+        // Check if message contains a data payload.
+        if (remoteMessage.getData().size() > 0) {
+            Log.e(TAG, "Data Payload: " + remoteMessage.getData().toString());
+            try {
+                JSONObject json = new JSONObject(remoteMessage.getData().toString());
+                handleDataMessage(json);
+            } catch (Exception e) {
+                Log.e(TAG, "Exception: " + e.getMessage());
+            }
+        }
+
 
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
@@ -65,21 +81,154 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
-            sendNotification(remoteMessage.getNotification().getBody());
+            //sendNotification(remoteMessage.getNotification().getBody());
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
     }
-    // [END receive_message]
+
+    private void handleDataMessage(JSONObject json) {
+        Log.e(TAG, "push json: " + json.toString());
+
+        try {
+            JSONObject data = json.getJSONObject("data");
+
+            String title = data.getString("title");
+            String message = data.getString("message");
+            String imageUrl = data.getString("image");
+            String sender = data.getString("sender");
+            String flag = data.getString("flag");
+            JSONObject payload = data.getJSONObject("payload");
+
+            Log.e(TAG, "title: " + title);
+            Log.e(TAG, "message: " + message);
+            Log.e(TAG, "payload: " + payload.toString());
+            Log.e(TAG, "imageUrl: " + imageUrl);
+            Log.d(TAG, "flag: " + flag);
+
+            switch (Integer.parseInt(flag)) {
+                case Constants.PUSH_TYPE_CHATROOM:
+                    // push notification belongs to a chat room
+                    processChatRoomPush(title, data);
+                    break;
+                case Constants.PUSH_TYPE_USER:
+                    // push notification is specific to user
+                    processUserMessage(title, data);
+                    break;
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Json Exception: " + e.getMessage());
+        } catch (Exception e) {
+            Log.e(TAG, "Exception: " + e.getMessage());
+        }
+
+    }
+
+    private void processChatRoomPush(String title, JSONObject data) {
+        try {
+            String imageUrl = data.getString("image");
+            String chatRoomId = data.getString("topicid");
+            String chatRoomName = data.getString("topicname");
+            String sender = data.getString("sender");
+            String pager = data.getString("viewpager");
+            String message = data.getString("message");
+
+            // skip the message if the message belongs to same user as
+            // the user would be having the same message when he was sending
+            // but it might differs in your scenario
+            if (sender.equals(mUsername)) {
+                Log.e(TAG, "Skipping the push message as it belongs to same user");
+                return;
+            }
+
+            if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
+                // app is in foreground, broadcast the push message
+                Intent pushNotification = new Intent(Constants.PUSH_NOTIFICATION);
+                pushNotification.putExtra("type", Constants.PUSH_TYPE_CHATROOM);
+                pushNotification.putExtra("message",message);
+
+                LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
+
+                // play notification sound
+                NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
+                notificationUtils.playNotificationSound();
+            } else {
+                // app is in background, show the notification in notification tray
+                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
+                resultIntent.putExtra("chat_room_id", chatRoomId);
+                showNotificationMessage(getApplicationContext(), title, sender + " : " + message, resultIntent);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "json parsing error: " + e.getMessage());
+            Toast.makeText(getApplicationContext(), "Json parse error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void processUserMessage(String title, JSONObject data) {
+        try {
+            String imageUrl = data.getString("image");
+            String sender = data.getString("sender");
+            String senderrtoken = data.getString("sendertoken");
+            String senderid = data.getString("senderid");
+            String message = data.getString("message");
+
+            if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
+                // app is in foreground, broadcast the push message
+                Intent pushNotification = new Intent(Constants.PUSH_NOTIFICATION);
+                pushNotification.putExtra("type", Constants.PUSH_TYPE_USER);
+                pushNotification.putExtra("message",message);
+
+                LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
+
+                // play notification sound
+                NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
+                notificationUtils.playNotificationSound();
+            } else {
+                // app is in background, show the notification in notification tray
+                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
+
+                // check for push notification image attachment
+                if (imageUrl.equals("none")) {
+                    showNotificationMessage(getApplicationContext(), title, sender + " : " + message, resultIntent);
+                } else {
+                    // push notification contains image
+                    // show it with the image
+                    showNotificationMessageWithBigImage(getApplicationContext(), title, message, resultIntent, imageUrl);
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "json parsing error: " + e.getMessage());
+            Toast.makeText(getApplicationContext(), "Json parse error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+        }
+    }
+
+    /**
+     * Showing notification with text only
+     */
+    private void showNotificationMessage(Context context, String title, String message, Intent intent) {
+        notificationUtils = new NotificationUtils(context);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        notificationUtils.showNotificationMessage(title, message, intent);
+    }
+
+    /**
+     * Showing notification with text and image
+     */
+    private void showNotificationMessageWithBigImage(Context context, String title, String message, Intent intent, String imageUrl) {
+        notificationUtils = new NotificationUtils(context);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        notificationUtils.showNotificationMessage(title, message, intent, imageUrl);
+    }
 
     /**
      * Create and show a simple notification containing the received FCM message.
      *
      * @param messageBody FCM message body received.
      */
-    private void sendNotification(String messageBody) {
+    private void sendNotification(String title,String messageBody) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
@@ -87,9 +236,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_stat_ic_notification)
+                // Show controls on lock screen even when user hides sensitive content.
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setPriority(2)
-                .setContentTitle("New Message")
+                .setContentTitle(title)
                 .setContentText(messageBody)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)

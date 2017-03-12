@@ -6,8 +6,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -15,19 +19,26 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow.OnDismissListener;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import com.deaspostudios.devchats.Constants;
 import com.deaspostudios.devchats.MainActivity;
 import com.deaspostudios.devchats.R;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -39,11 +50,15 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import activity.Status;
+import activity.UploadActivity_Topic;
 import activity.UserType;
 import adapter.Items_forums;
 import adapter.Message;
@@ -59,6 +74,7 @@ import github.ankushsachdeva.emojicon.emoji.Emojicon;
 import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.sendTopicNotification;
 import static fragment.topic.tDatabaseReference;
 
 /**
@@ -66,10 +82,27 @@ import static fragment.topic.tDatabaseReference;
  */
 
 public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    /**
+            * Uploading media files
+    * @param savedInstanceState
+    */
+    // LogCat tag
+    private static final String TAG = MainActivity.class.getSimpleName();
+    // Camera activity request codes
+    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
+    public static StorageReference topicStorageRef;
+    /**
+     * using the  new adapter
+     */
+    public static MessageAdapter messageAdapter_topic;
     private static String topicId;
     private static SwipeRefreshLayout swipeRefreshLayout;
+    private ProgressBar forumspb;
     private ListView forumListView;
     private ImageView emojiButton;
     private ImageButton photopicker, enterButton;
@@ -80,13 +113,53 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     private ChildEventListener CurrentMessageRefListener;
     //Firebase storage & Database
     private FirebaseStorage topicStorage;
-    private StorageReference topicStorageRef;
-    /**
-     * using the  new adapter
-     */
-    private MessageAdapter messageAdapter;
     private ArrayList<Message> messageList;
     private boolean currentUserIsCreator = false;
+    private Uri fileUri; // file url to store image/video
+
+    /**
+     * returning image / video
+     */
+    private static File getOutputMediaFile(int type) {
+
+        // External sdcard location
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                Constants.IMAGE_DIRECTORY_NAME);
+
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d(TAG, "Oops! Failed create "
+                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
+                return null;
+            }
+        }
+
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
+                Locale.getDefault()).format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "IMG_" + timeStamp + ".jpg");
+        } else if (type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "VID_" + timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
+
+    /**
+     * Launching app to capture photo
+     * @param items_forums
+     * @param currentUserEmail
+     * @return
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,11 +208,119 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
          * initialize the adapter
          */
         messageList = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messageList, this);
+        messageAdapter_topic = new MessageAdapter(messageList, this);
 
-        forumListView.setAdapter(messageAdapter);
+        forumListView.setAdapter(messageAdapter_topic);
 
     }
+
+    /**
+     * Checking device has camera hardware or not
+     * */
+    private boolean isDeviceSupportCamera() {
+        if (getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA)) {
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
+    }
+
+    /**
+     * Launching camera app to capture image
+     */
+    private void captureImage() {
+        if (!isDeviceSupportCamera()) {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry! Your device doesn't support camera",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        fileUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+
+        // start the image capture Intent
+        startActivityForResult(intent, CAMERA_CAPTURE_IMAGE_REQUEST_CODE);
+    }
+
+    /**
+     * Launching camera app to record video
+     */
+    private void recordVideo() {
+        if (!isDeviceSupportCamera()) {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry! Your device doesn't support camera",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+
+        fileUri = getOutputMediaFileUri(MEDIA_TYPE_VIDEO);
+
+        // set video quality
+        intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file
+        // name
+
+        // start the video capture Intent
+        startActivityForResult(intent, CAMERA_CAPTURE_VIDEO_REQUEST_CODE);
+    }
+
+    /**
+     * Here we store the file url as it will be null after returning from camera
+     * app
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // save file url in bundle as it will be null on screen orientation
+        // changes
+        outState.putParcelable("file_uri", fileUri);
+    }
+
+
+    /**
+     * ------------ Helper Methods ----------------------
+     * */
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // get the file url
+        fileUri = savedInstanceState.getParcelable("file_uri");
+    }
+
+    /**
+     * Creating file uri to store image/video
+     */
+    public Uri getOutputMediaFileUri(int type) {
+        return Uri.fromFile(getOutputMediaFile(type));
+    }
+
+    private void launchUploadActivity(boolean isImage){
+        Intent i = new Intent(TopicActivity.this, UploadActivity_Topic.class);
+        i.putExtra("filePath", fileUri.toString());
+        i.putExtra("isImage", isImage);
+        i.putExtra("topicid", topicId);
+        i.putExtra("topicname", topicName);
+        startActivity(i);
+    }
+
+    /**
+     * end of capture/record
+     * @param items_forums
+     * @param currentUserEmail
+     * @return
+     */
+
 
     private boolean checkOwnership(Items_forums items_forums, String currentUserEmail) {
         return (items_forums.getCreated_by() != null && items_forums.owner_email.equals(currentUserEmail));
@@ -147,11 +328,13 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     private void InitializeScreen() {
         forumListView = (ListView) findViewById(R.id.forum_list_view);
+        registerForContextMenu(forumListView);
         emojiButton = (ImageView) findViewById(R.id.forum_emojiButton);
         final EmojiconEditText emojiconEditText = (EmojiconEditText) findViewById(R.id.emojicon_edit_text);
         final View rootView = findViewById(R.id.root_topic);
         photopicker = (ImageButton) findViewById(R.id.forum_photoPickerButton);
         enterButton = (ImageButton) findViewById(R.id.enter_forum);
+        forumspb = (ProgressBar) findViewById(R.id.forumsspb);
 
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout_forum);
 
@@ -165,7 +348,6 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                                     @Override
                                     public void run() {
                                         swipeRefreshLayout.setRefreshing(true);
-                                        attachMessageListener();
                                     }
                                 }
         );
@@ -326,17 +508,20 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                 message.setUserId(mUID);
                 message.setUserType(UserType.SELF);
                 message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
-                if (messageAdapter != null)
-                    messageAdapter.notifyDataSetChanged();
+                if (messageAdapter_topic != null)
+                    messageAdapter_topic.notifyDataSetChanged();
                 currentForumMessages.push().setValue(message);
-                // clear the input box
-                emojiconEditText.setText("");
                 /**
-                 * subcribes the sender to the topic group
+                 * subcribes the sender to the topic
+                 *
                  */
                 //start subcribe
-                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicName));
+                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                 // [END subscribe_topics]
+                //send message to all the topic subscribers
+                sendTopicNotification(escapeSpace(topicId), topicName,mUsername, "none","Topic","1",emojiconEditText.getText().toString());
+                // clear the input box
+                emojiconEditText.setText("");
             }
         });
 
@@ -346,6 +531,26 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         iconToBeChanged.setImageResource(drawableResourceId);
     }
 
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        if (v.getId() == R.id.forum_list_view) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+//            menu.setHeaderTitle("Options");
+            String[] menuItems = getResources().getStringArray(R.array.longpress);
+            for (int i = 0; i<menuItems.length; i++) {
+                menu.add(Menu.NONE, i, i, menuItems[i]);
+            }
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        int menuItemIndex = item.getItemId();
+        switch (menuItemIndex) {
+            default:
+                return super.onContextItemSelected(item);
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -370,14 +575,20 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
          * action on menu item selected
          */
         switch (item.getItemId()) {
-            case R.id.action_remove_group:
-                showWarning(this.getApplicationContext(), "Remove " + topicName + "?", "By deleting this group, all the conversations will also be deleted", true, true, -1, MainActivity.class);
+            case R.id.action_remove_topic:
+                showWarning(this.getApplicationContext(), "Remove " + topicName + "?", "By deleting this topic, all the conversations will also be deleted", true, true, -1, MainActivity.class);
                 return true;
-            case R.id.action_edit_group_name:
+            case R.id.action_edit_topic_name:
                 showEditGTopicDialog();
                 return true;
             case R.id.action_refresh_topic:
                 attachMessageListener();
+                return true;
+            case R.id.action_capture:
+                captureImage();
+                return true;
+            case R.id.action_record:
+                recordVideo();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -402,6 +613,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         detachMessageListener();
         detachForumListener();
         messageList.clear();
+        messageAdapter_topic.notifyDataSetChanged();
     }
 
     @Override
@@ -410,6 +622,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         detachMessageListener();
         detachForumListener();
         messageList.clear();
+        messageAdapter_topic.notifyDataSetChanged();
     }
 
     private void attachForumListener() {
@@ -439,20 +652,16 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     }
 
     private void attachMessageListener() {
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setRefreshing(true);
-        }
+        swipeRefreshLayout.setRefreshing(true);
 
         CurrentMessageRefListener = currentForumMessages.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Message message = dataSnapshot.getValue(Message.class);
                 messageList.add(message);
-                if (messageAdapter != null)
-                    messageAdapter.notifyDataSetChanged();
-
+                messageAdapter_topic.notifyDataSetChanged();
+                swipeRefreshLayout.setRefreshing(false);
             }
-
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
             }
@@ -471,10 +680,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         });
 
         //currentForumMessages.addChildEventListener(CurrentMessageRefListener);
-
-        if (swipeRefreshLayout != null) {
-            swipeRefreshLayout.setRefreshing(false);
-        }
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     private void detachMessageListener() {
@@ -495,6 +701,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
+            forumspb.setVisibility(ProgressBar.VISIBLE);
             Uri selectedUmageUri = data.getData();
             StorageReference topic_photoRef = topicStorageRef.child(selectedUmageUri.getLastPathSegment());
 
@@ -510,15 +717,74 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     message.setPhotoUrl(downloadUri.toString());
                     message.setUserType(UserType.SELF);
                     message.setTimeStamp(DateFormat.getDateTimeInstance().format(new Date()));
-                    if (messageAdapter != null)
-                        messageAdapter.notifyDataSetChanged();
+                    if (messageAdapter_topic != null)
+                        messageAdapter_topic.notifyDataSetChanged();
                     currentForumMessages.push().setValue(message);
+                    /**
+                     * subcribes the sender to the topic
+                     *
+                     */
+                    //start subcribe
+                    FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
+                    // [END subscribe_topics]
+                    //send message to all the topic subscribers
+                    sendTopicNotification(escapeSpace(topicId), topicName,mUsername, downloadUri.toString(),"Topic","1","Picture message");
+                    forumspb.setVisibility(ProgressBar.GONE);
 
 
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), "Failed to upload image", Toast.LENGTH_LONG).show();
+                    forumspb.setVisibility(ProgressBar.GONE);
+                    e.printStackTrace();
                 }
             });
 
 
+        }else if (requestCode == CAMERA_CAPTURE_IMAGE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+
+                // successfully captured the image
+                // launching upload activity
+                launchUploadActivity(true);
+
+
+            } else if (resultCode == RESULT_CANCELED) {
+
+                // user cancelled Image capture
+                Toast.makeText(getApplicationContext(),
+                        "User cancelled image capture", Toast.LENGTH_SHORT)
+                        .show();
+
+            } else {
+                // failed to capture image
+                Toast.makeText(getApplicationContext(),
+                        "Sorry! Failed to capture image", Toast.LENGTH_SHORT)
+                        .show();
+            }
+
+        } else if (requestCode == CAMERA_CAPTURE_VIDEO_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+
+                // video successfully recorded
+                // launching upload activity
+                launchUploadActivity(false);
+
+            } else if (resultCode == RESULT_CANCELED) {
+
+                // user cancelled recording
+                Toast.makeText(getApplicationContext(),
+                        "User cancelled video recording", Toast.LENGTH_SHORT)
+                        .show();
+
+            } else {
+                // failed to record video
+                Toast.makeText(getApplicationContext(),
+                        "Sorry! Failed to record video", Toast.LENGTH_SHORT)
+                        .show();
+            }
         }
     }
 
@@ -562,7 +828,8 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     @Override
     public void onRefresh() {
-
+        messageList.clear();
+        attachMessageListener();
     }
 
     public static class AlertFragment extends DialogFragment {

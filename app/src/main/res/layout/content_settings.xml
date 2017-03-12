@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="60dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/aboutuser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ProgressBar
+                    android:id="@+id/aboutpb"
+                    style="@android:style/Widget.ProgressBar.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginTop="20dp" />
+
+                <ImageView
+                    android:id="@+id/aboutpic"
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    android:adjustViewBounds="false"
+                    android:elevation="4dp"
+                    android:scaleType="centerCrop" />
+
+            </FrameLayout>
+
+
+            <TextView
+                android:id="@+id/aboutname"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="145dp"
+                android:layout_marginRight="10dp"
+                android:text="User name here"
+                android:textAlignment="textEnd"
+                android:textSize="24sp" />
+
+            <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/cardstatus"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_below="@id/aboutname"
+                android:layout_marginLeft="145dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                card_view:cardCornerRadius="5dp"
+                card_view:cardElevation="15dp"
+                card_view:cardPreventCornerOverlap="true"
+                card_view:theme="@style/tw__CardAppStoreName">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/aboutstatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:text="Hey there am a developer"
+                        android:textAlignment="textEnd"
+                        android:textSize="16sp"
+                        android:textStyle="normal|bold|italic" />
+
+                    <TextView
+                        android:id="@+id/abouttapstatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/aboutstatus"
+                        android:layout_marginRight="10dp"
+                        android:text="Tap to change"
+                        android:textAlignment="textEnd"
+                        android:textSize="12sp" />
+
+                </RelativeLayout>
+
+            </android.support.v7.widget.CardView>
+
+            <Button
+                android:id="@+id/aboutbutton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/cardstatus"
+                android:layout_marginLeft="145dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Tap to change photo" />
+
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/open_preferences"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/aboutuser">
+
+        <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/aboutmore"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:orientation="horizontal"
+            card_view:cardCornerRadius="5dp"
+            card_view:cardElevation="15dp"
+            card_view:cardPreventCornerOverlap="true"
+            card_view:theme="@style/tw__CardAppStoreName">
+
+            <TextView
+                android:id="@+id/text_view_list_name"
+                style="@style/ListItemText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingLeft="2dp"
+                android:text="Tap to change app settings"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:textStyle="normal|bold" />
+
+        </android.support.v7.widget.CardView>
+
+    </LinearLayout>
+
+</RelativeLayout>

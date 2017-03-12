@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_file_upload"
+        android:icon="@drawable/ic_attach_file_black_24dp"
+        android:orderInCategory="100"
+        android:title="@string/action_upload_file"
+        android:visible="true"
+        app:showAsAction="ifRoom"
+        android:enabled="false" />
+
+    <item
+        android:id="@+id/action_refresh"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_loop_black_24dp"
+        android:title="@string/action_refresh"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_audio"
+        android:icon="@drawable/ic_settings_voice_black_24dp"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:title="@string/action_audio" />
+
+    <item
+        android:id="@+id/action_capture"
+        android:icon="@drawable/ic_videocam_black_24dp"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:title="@string/action_capture" />
+
+    <item
+        android:id="@+id/action_record"
+        android:icon="@drawable/ic_videocam_black_24dp"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:title="@string/action_record" />
+
+    <item
+        android:id="@+id/action_clear_conversation"
+        android:icon="@drawable/ic_clear_black_24dp"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:title="@string/action_clear" />
+
+    <item
+        android:id="@+id/action_view_contact"
+        android:orderInCategory="100"
+        android:title="@string/action_view_contact" />
+
+</menu>

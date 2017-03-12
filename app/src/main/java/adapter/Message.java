@@ -28,6 +28,7 @@ public class Message {
     private String text;
     private String userName;
     private String photoUrl;
+    private String videoUrl;
     private String timeStamp;
     private Status messageStatus;
     private UserType userType;
@@ -37,10 +38,11 @@ public class Message {
     public Message() {
     }
 
-    public Message(String text, String name, String photoUrl, String timeStamp, String userId) {
+    public Message(String text, String name, String photoUrl, String videoUrl, String timeStamp, String userId) {
         this.text = text;
         this.userName = name;
         this.photoUrl = photoUrl;
+        this.videoUrl = videoUrl;
         //this.profilePicUrl = profilePicUrl;
         this.timeStamp = timeStamp;
         this.userId = userId;
@@ -103,12 +105,21 @@ public class Message {
         this.userId = userId;
     }
 
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
+    }
+
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("text", text);
         result.put("userName", userName);
         result.put("photoUrl", photoUrl);
+        result.put("videourl", videoUrl);
         result.put("messageStatus", messageStatus);
         result.put("userType", userType);
         result.put("userId", userId);

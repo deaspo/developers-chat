@@ -181,7 +181,7 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
             public void onCancelled(DatabaseError databaseError) {
             }
         });
-        usersDbRef.addChildEventListener(usersChildEventListener);
+        //usersDbRef.addChildEventListener(usersChildEventListener);
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setRefreshing(false);
         }
@@ -222,6 +222,7 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
                     Intent intent = new Intent(getActivity(), Chat.class);
                     intent.putExtra("username", user.getName());
                     intent.putExtra("userid", user.getUid());
+                    intent.putExtra("token", user.getDevicetoken());
                     /**
                      * start activity
                      */
@@ -283,36 +284,28 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
     @Override
     public void onStart() {
         super.onStart();
+        attachChatUsersDb();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (chattingAdapter.objects != null) {
-            chattingAdapter.objects.clear();
-        }
         attachChatUsersDb();
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (chattingAdapter != null) {
-            chattingUsers.clear();
-            chattingAdapter.notifyDataSetChanged();
-        }
-        deatchChatDb();
 
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (chattingAdapter != null) {
-            chattingUsers.clear();
-            chattingAdapter.notifyDataSetChanged();
-        }
-        deatchChatDb();
+        /*deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();*/
     }
 
     @Override

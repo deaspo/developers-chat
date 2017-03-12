@@ -3,10 +3,6 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_chat"
-            android:icon="@drawable/ic_chat_black_24dp"
-            android:title="@string/nav_chats" />
-        <item
             android:id="@+id/nav_groups"
             android:icon="@drawable/ic_group_add_black_24dp"
             android:title="@string/nav_groups" />
@@ -14,6 +10,10 @@
             android:id="@+id/nav_topics"
             android:icon="@drawable/ic_group_black_24dp"
             android:title="@string/nav_topics" />
+        <item
+            android:id="@+id/nav_chat"
+            android:icon="@drawable/ic_chat_black_24dp"
+            android:title="@string/nav_chats" />
         <item
             android:id="@+id/nav_users"
             android:icon="@drawable/ic_supervisor_account_black_24dp"
@@ -28,6 +28,9 @@
             <item
                 android:id="@+id/nav_about_us"
                 android:title="@string/nav_about_us" />
+            <item
+                android:id="@+id/nav_feedback"
+                android:title="@string/nav_feedback" />
         </menu>
     </item>
 

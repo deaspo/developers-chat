@@ -32,7 +32,24 @@ public final class Constants {
      */
     public static final String ORDER_BY_KEY = "orderByPushKey";
     public static final String ORDER_BY_OWNER_EMAIL = "orderByOwnerEmail";
-
+    /**
+     *
+     */
+    public static final String SHARED_PREF = "ah_firebase";
+    // id to handle the notification in the notification tray
+    public static final int NOTIFICATION_ID = 100;
+    public static final int NOTIFICATION_ID_BIG_IMAGE = 101;
+    // broadcast receiver intent filters
+    public static final String REGISTRATION_COMPLETE = "registrationComplete";
+    public static final String PUSH_NOTIFICATION = "pushNotification";
+    // type of push messages
+    public static final int PUSH_TYPE_CHATROOM = 1;
+    public static final int PUSH_TYPE_USER = 2;
+    /**
+     * upload variables
+     */
+    // Directory name to store captured images and videos
+    public static final String IMAGE_DIRECTORY_NAME = "Developers Chat File Upload";
     /**
      * Constants for Settings
      */
@@ -42,10 +59,5 @@ public final class Constants {
     public static String USER_PIC = "USER_PIC";
     public static String USER_BG = "USER_BG";
     public static String USER_VISIBLE = "true";
-
-    /**
-     *
-     */
-
 
 }

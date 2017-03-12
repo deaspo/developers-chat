@@ -11,6 +11,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -18,19 +19,26 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -46,20 +54,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import adapter.Items_forums;
 import adapter.RecyclerAdapterGroup;
 import adapter.RecyclerAdapterTopic;
 import adapter.RecyclerAdapterUser;
 import adapter.User;
-import adapter.UserAdapter;
 import dialog.AddGroupDialog;
 import dialog.AddTopicDialog;
 import fragment.fav;
 import fragment.group;
 import fragment.topic;
 import fragment.user;
+import other.CircleTransform;
 
 import static fragment.fav.attachChatUsersDb;
 import static fragment.fav.cDatabaseReference;
@@ -100,29 +110,33 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private static final String TAG_TOPIC = "topics";
     private static final String TAG_USERS = "active users";
     private static final String TAG_SETTINGS = "settings";
+    private static final String urlNavHeaderBg = "http://api.androidhive.info/images/nav-menu-header-bg.jpg";
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
-    public static String mUsername, mUserphoto, mUserEmail;
+    public static String mUID, mStatus, mEncodedEmail, mUsername, mUserphoto, mUserEmail, mDeviceToken;
     public static Boolean mVisible, mStatusVisble;
     public static DatabaseReference usersDbRef;
     public static ChildEventListener usersChildEventListener;
-    public static String mUID;
-    public static String mEncodedEmail;
-    public static String mProfile;
-    public static String mStatus;
     // index to identify current nav menu item
     public static int navItemIndex = 0;
     public static String CURRENT_TAG = TAG_CHAT;
-    public static StorageReference storageReference, imageRef;
+    public static StorageReference storageReference, profile_photos, imageRef;
+    public static ViewPager viewPager;
+    /**
+     * store values
+     */
+    public static SharedPreferences userpreferences;
     /**
      * to save db offline when there is no internet connection
      */
     static boolean localCache = false;
+    static boolean profile_photo_cache = false;
     private static int SORT_ORDER = 0;
+    private static ImageView img_profile, imgNavHeaderBg;
+    private static TextView username, status;
     //tabs specific
     private Toolbar toolbar;
     private TabLayout tabLayout;
-    private ViewPager viewPager;
     //Firebase auth
     private FirebaseAuth mFirebaseAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
@@ -130,6 +144,13 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private FirebaseDatabase usersDb;
     private MenuItem searchMenuItem;
     private SearchView searchView;
+    private View navHeader;
+
+    // toolbar titles respected to selected nav menu item
+    private String[] activityTitles;
+    // flag to load home fragment when user presses back key
+    private boolean shouldLoadHomeFragOnBackPress = true;
+    private Handler mHandler;
     /**
      * tab icons
      *
@@ -150,7 +171,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
      */
     private NavigationView navigationView;
     private DrawerLayout drawer;
-    private View navHeader;
+    /**
+     * Setup receive notifications
+     * @param savedInstanceState
+     */
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
+    private TextView txtMessage;
 
     public static void detachUsersListeners() {
         if (usersChildEventListener != null) {
@@ -171,10 +197,74 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         return name.replace(" ", "_");
     }
 
+    public static void sendTopicNotification(String topicid, String topicname,String sender, String imageurl, String viewpager, String flag, String message) {
+        FirebaseDatabase topicsDb = FirebaseDatabase.getInstance();
+        final DatabaseReference topicsRef = topicsDb.getReference().child("topicsRequest");
+
+        Map notification = new HashMap<>();
+        notification.put("imageurl",imageurl);
+        notification.put("viewpager",viewpager);
+        notification.put("flag",flag);
+        notification.put("topicname", topicname);
+        notification.put("sender", sender);
+        notification.put("topicid", topicid);
+        notification.put("message", message);
+
+        topicsRef.push().setValue(notification);
+    }
+
+    public static void sendChatNotification(String senderid,String sendertoken,String imageurl,String flag,String devicetoken,String sender, String message) {
+        FirebaseDatabase chatsdb = FirebaseDatabase.getInstance();
+        final DatabaseReference chatsref = chatsdb.getReference().child("chatsrequest");
+
+        Map notification = new HashMap<>();
+        notification.put("senderid",senderid);
+        notification.put("sendertoken",sendertoken);
+        notification.put("imageurl",imageurl);
+        notification.put("flag  ",flag);
+        notification.put("token",devicetoken);
+        notification.put("sender",sender);
+        notification.put("message",message);
+
+        chatsref.push().setValue(notification);
+    }
+
+    public static String userToken() {
+        /**
+         * extracts the user token
+         */
+        // Get token
+        String token = FirebaseInstanceId.getInstance().getToken();
+        return  token;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        userpreferences = this.getSharedPreferences("com.deaspostudios.devchats", MODE_PRIVATE);
+        txtMessage = (TextView) findViewById(R.id.txt_push_message);
+        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                // checking for type intent filter
+                if (intent.getAction().equals(Constants.REGISTRATION_COMPLETE)) {
+                    // gcm successfully registered
+
+
+                } else if (intent.getAction().equals(Constants.PUSH_NOTIFICATION)) {
+                    // new push notification is received
+
+                    String message = intent.getStringExtra("message");
+
+                    Toast.makeText(getApplicationContext(), "Push notification: " + message, Toast.LENGTH_LONG).show();
+
+                    txtMessage.setText(message);
+                }
+            }
+        };
+
 
         /**
          * locally chache db
@@ -206,6 +296,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         //users
         usersDbRef = usersDb.getReference().child("users");
 
+
         /**
          * setting up  the chats viewer
          */
@@ -218,7 +309,20 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
 
+        // Navigation view header
+        navHeader = navigationView.getHeaderView(0);
+
+        img_profile = (ImageView) navHeader.findViewById(R.id.img_profile);
+        imgNavHeaderBg = (ImageView) navHeader.findViewById(R.id.img_header_bg);
+        username = (TextView) navHeader.findViewById(R.id.name);
+        status = (TextView) navHeader.findViewById(R.id.status);
+
+        // load toolbar titles from string resources
+        activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
+
         setUpNavigationView();
+
+        mHandler = new Handler();
 
         //setting up the tabs
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -235,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //initialize chats tab
         chattingUsers = new ArrayList<>();
-        chattingAdapter = new UserAdapter(this, R.layout.items, chattingUsers);
+        chattingAdapter = new RecyclerAdapterUser(this, chattingUsers);
 
         //initialize users
         onlineUsers = new ArrayList<>();
@@ -284,6 +388,75 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         this.registerReceiver(connection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+
+    }
+
+    private void loadHomeFragment() {
+        // selecting appropriate nav menu item
+        selectNavMenu();
+
+        // set toolbar title
+        setToolbarTitle();
+
+        // if user select the current navigation menu again, don't do anything
+        // just close the navigation drawer
+        if (getSupportFragmentManager().findFragmentByTag(CURRENT_TAG) != null) {
+            drawer.closeDrawers();
+            return;
+        }
+
+        // Sometimes, when fragment has huge data, screen seems hanging
+        // when switching between navigation menus
+        // So using runnable, the fragment is loaded with cross fade effect
+        // This effect can be seen in GMail app
+        Runnable mPendingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                // update the main content by replacing fragments
+                Fragment fragment = getHomeFragment();
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
+                        android.R.anim.fade_out);
+                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG);
+                fragmentTransaction.commitAllowingStateLoss();
+            }
+        };
+
+        // If mPendingRunnable is not null, then add to the message queue
+        /*if (mPendingRunnable != null) {
+            mHandler.post(mPendingRunnable);
+        }
+*/
+        //Closing drawer on item click
+        drawer.closeDrawers();
+    }
+
+    private void setToolbarTitle() {
+        getSupportActionBar().setTitle(activityTitles[navItemIndex]);
+    }
+
+    private void selectNavMenu() {
+        navigationView.getMenu().getItem(navItemIndex).setChecked(true);
+    }
+
+    private Fragment getHomeFragment() {
+        switch (navItemIndex) {
+            case 0:
+                group group = new group();
+                return group;
+            case 1:
+                topic topic = new topic();
+                return topic;
+            case 2:
+                fav fav = new fav();
+                return fav;
+            case 3:
+                user user = new user();
+                return user;
+            default:
+                return new group();
+
+        }
     }
 
     /**
@@ -329,16 +502,21 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                     case R.id.nav_settings: /* need to have a settings activity */
                         startSettings();
                         drawer.closeDrawers();
-                        return true;
+                        break;
                     case R.id.nav_about_us:
                         // launch new intent instead of loading fragment
                         startActivity(new Intent(MainActivity.this, AboutUs.class));
                         drawer.closeDrawers();
-                        return true;
+                        break;
+                    case R.id.nav_feedback:
+                        //launch feed send
+                        sendFeedback();
+                        drawer.closeDrawers();
+                        break;
                     default:
                         navItemIndex = 0;
-                        CURRENT_TAG = TAG_CHAT;
                         viewPager.setCurrentItem(0, true);
+                        drawer.closeDrawers();
                         break;
                 }
 
@@ -349,7 +527,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                     menuItem.setChecked(true);
                 }
                 menuItem.setChecked(true);
-
+                loadHomeFragment();
                 return true;
             }
         });
@@ -375,6 +553,17 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //calling sync state is necessary or else your hamburger icon wont show up
         actionBarDrawerToggle.syncState();
+    }
+
+    private void sendFeedback() {
+        Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+        emailIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        emailIntent.setType("vnd.android.cursor.item/email");
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] {"info@deaspostudios.com"});
+        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Your Feedback is Appreciated");
+        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "");
+        emailIntent.putExtra(Intent.EXTRA_HTML_TEXT, "<br> <p>Let us joing and help develop each other. It takes only a minute</p>");
+        startActivity(Intent.createChooser(emailIntent, "Send feedback using..."));
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -407,10 +596,26 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public boolean onQueryTextChange(String newText) {
         final List<Items_forums> filteredItems = filter(topics, newText);
         final List<Items_forums> filteredGroup = filter(groups, newText);
+        final List<User> filteredUser = filter_user(onlineUsers, newText);
+        final List<User> filteredFav = filter_user(chattingUsers, newText);
 
         topicsAdapter.setFilter(filteredItems);
         adapter.setFilter(filteredGroup);
+        usersAdapter.setFilter(filteredUser);
+        chattingAdapter.setFilter(filteredFav);
         return true;
+    }
+
+    private List<User> filter_user(List<User> models, String query) {
+        query = query.toLowerCase();
+        final List<User> filteredModelList = new ArrayList<>();
+        for (User model : models) {
+            final String text = model.getName().toLowerCase();
+            if (text.contains(query)) {
+                filteredModelList.add(model);
+            }
+        }
+        return filteredModelList;
     }
 
     private List<Items_forums> filter(List<Items_forums> models, String query) {
@@ -431,36 +636,103 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     }
 
     @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawers();
+            return;
+        }
+
+        // This code loads home fragment when back key is pressed
+        // when user is in other fragment than home
+        if (shouldLoadHomeFragOnBackPress) {
+            // checking if user is on other navigation menu
+            // rather than home
+            if (navItemIndex != 0) {
+                navItemIndex = 0;
+                CURRENT_TAG = TAG_GROUP;
+                loadHomeFragment();
+                return;
+            }
+        }
+
+        super.onBackPressed();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
+        // register GCM registration complete receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(Constants.REGISTRATION_COMPLETE));
+
+        // register new push message receiver
+        // by doing this, the activity will be notified each time a new message arrives
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(Constants.PUSH_NOTIFICATION));
+
+        // clear the notification area when the app is opened
+        NotificationUtils.clearNotifications(getApplicationContext());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+        if (mAuthStateListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+        }
+        if (mUsername != null && mUserEmail != null && mUID != null) {
+            removeUserName(mUsername, mUserEmail, mUID); *//* only carry out the action if there is an existing user *//*
+        }
+        *//**
+         * plan is to detach and clear all the listeners here
+         *//*
+        detachUserDatabaseListener();
+        onlineUsers.clear();
+        usersAdapter.notifyDataSetChanged();
+        *//* chat Db *//*
+        deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
+        *//* group Db *//*
+        detachGroupDatabaseListener();
+        groups.clear();
+        adapter.notifyDataSetChanged();
+        *//* Topic Db *//*
+        detachTopicDatabaseListener();
+        topics.clear();
+        topicsAdapter.notifyDataSetChanged();*/
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
         if (mAuthStateListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
         if (mUsername != null && mUserEmail != null && mUID != null) {
             removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
         }
-
+        /**
+         * plan is to detach and clear all the listeners here
+         */
         detachUserDatabaseListener();
         onlineUsers.clear();
         usersAdapter.notifyDataSetChanged();
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mUsername != null && mUserEmail != null && mUID != null) {
-            removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
-        }
-        detachUserDatabaseListener();
-        onlineUsers.clear();
-        usersAdapter.notifyDataSetChanged();
+        /* chat Db */
+        deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
+        /* group Db */
+        detachGroupDatabaseListener();
+        groups.clear();
+        adapter.notifyDataSetChanged();
+        /* Topic Db */
+        detachTopicDatabaseListener();
+        topics.clear();
+        topicsAdapter.notifyDataSetChanged();
     }
 
     private void OnSignedInialize(String username, String useremail, String uid) {
@@ -473,14 +745,23 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         /**
          * setting the preference values
          */
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
+        //mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
+        mUserphoto = userpreferences.getString("userpic", null);
+        if (mStatus == null) {
+            mStatus = userpreferences.getString("userstatus", "Hey there am also a developer!");
+        }
+
         if (mStatusVisble == null || mVisible == null) {
             mStatusVisble = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
             mVisible = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
         }
+        if (mDeviceToken == null) {
+            mDeviceToken = userToken();
+        }
         setDefaults();
+        loadDetailsDrawer();
+        loadProfile();
         addUser(username, useremail, uid);
         setUsername(mUsername, useremail, uid);
         //chats
@@ -488,9 +769,13 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         chatsUsersDb = chatsFirebaseDatabase.getReference().child("chats").child(mUID).child("conversations");
         System.out.println("Logged in user " + username);
         if (mUsername != null) {
-            attachChatUsersDb();
+            //attachChatUsersDb();
             attachUserDatabaseListener();
         }
+        /**
+         * set the profile pic storage
+         */
+        profile_photos = storageReference.child("profile_photos").child(mUID);
 
 
     }
@@ -514,7 +799,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public boolean onCreateOptionsMenu(Menu menu) {
 
         if (pageItemIndex == 2) {
-            getMenuInflater().inflate(R.menu.main, menu);
+            getMenuInflater().inflate(R.menu.main_fav, menu);
+            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            searchMenuItem = menu.findItem(R.id.app_bar_search_fav);
+            searchView = (SearchView) searchMenuItem.getActionView();
+
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setSubmitButtonEnabled(true);
+
+            searchView.setOnQueryTextListener(this);
         } else if (pageItemIndex == 0) {
             getMenuInflater().inflate(R.menu.menu_groups, menu);
             SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -537,7 +830,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             searchView.setOnQueryTextListener(this);
 
         } else if (pageItemIndex == 3) {
-            getMenuInflater().inflate(R.menu.main, menu);
+            getMenuInflater().inflate(R.menu.main_user, menu);
+            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            searchMenuItem = menu.findItem(R.id.app_bar_search_user);
+            searchView = (SearchView) searchMenuItem.getActionView();
+
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+            searchView.setSubmitButtonEnabled(true);
+
+            searchView.setOnQueryTextListener(this);
         }
         return true;
     }
@@ -553,16 +854,23 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                 if (position == 0) {
                     pageItemIndex = 0;
                     invalidateOptionsMenu();
+                    navItemIndex = 0;
                 } else if (position == 1) {
                     pageItemIndex = 1;
                     invalidateOptionsMenu();
+                    navItemIndex = 1;
                 } else if (position == 2) {
                     pageItemIndex = 2;
                     invalidateOptionsMenu();
+                    navItemIndex = 2;
                 } else if (position == 3) {
                     pageItemIndex = 3;
                     invalidateOptionsMenu();
+                    navItemIndex = 3;
                 }
+                //set the toolbar titles
+                // set toolbar title
+                setToolbarTitle();
             }
 
             @Override
@@ -603,7 +911,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     private void addUser(String mUsername, String mEncodedEmail, String uUid) {
         mUID = uUid;
-        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mProfile, mStatus, mStatusVisble, mVisible);
+        User user = new User(mDeviceToken,mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         usersDbRef.child(uUid).setValue(user);
 
         /*chatsFirebaseDatabase =FirebaseDatabase.getInstance();
@@ -635,11 +943,10 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     }
 
     public void startSettings() {
-        Intent intent = new Intent(this, MyPreferenceActivity.class);
-        intent.putExtra("username", Constants.USER_NAME);
-        intent.putExtra("userstatus", Constants.USER_STATUS);
-        intent.putExtra("statusvisibility", Constants.STATUS_VISIBLE);
-        intent.putExtra("onlinevisibility", Constants.USER_VISIBLE);
+        Intent intent = new Intent(this, SettingsActivity.class);
+        intent.putExtra("username", mUsername);
+        intent.putExtra("userpic", mUserphoto);
+        intent.putExtra("userstatus", mStatus);
 
         /**
          * starts setting activity
@@ -687,16 +994,36 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         adapter.notifyDataSetChanged();
     }
 
-    private void userToken() {
-        /**
-         * extracts the user token
-         */
-        // Get token
-        String token = FirebaseInstanceId.getInstance().getToken();
+    private void loadDetailsDrawer() {
+        //set the user name
+        username.setText(mUsername);
+        //set the ststus
+        status.setText(mStatus);
+    }
 
-        // Log and toast
-        Log.d("Token for Polycarp", token);
-        System.out.println("Token for Polycarp " + token);
+    public void loadProfile() {
+        // Loading profile image
+        if (mUserphoto == null) {
+            Glide.with(this).using(new FirebaseImageLoader()).load(imageRef)
+                    .crossFade()
+                    .thumbnail(0.5f)
+                    .bitmapTransform(new CircleTransform(this))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(img_profile);
+        } else {
+            Glide.with(this).load(mUserphoto)
+                    .crossFade()
+                    .thumbnail(0.5f)
+                    .bitmapTransform(new CircleTransform(this))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(img_profile);
+        }
+        //load the header picture
+        Glide.with(this).load(urlNavHeaderBg)
+                .crossFade()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(imgNavHeaderBg);
+
     }
 
     private void refreshAllViews() {
@@ -779,6 +1106,4 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             }
         }
     }
-
-
 }

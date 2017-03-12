@@ -1,21 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <PreferenceCategory
+        android:icon="@drawable/ic_info_black_24dp"
         android:summary="Application Settings"
-        android:title="Settings">
+        android:title="General"
+        tools:icon="@drawable/ic_info_black_24dp">
 
         <EditTextPreference
+            android:editable="false"
+            android:enabled="false"
             android:key="username"
-            android:summary="Tap to change your user name"
             android:title="Your Name"></EditTextPreference>
 
         <EditTextPreference
             android:defaultValue="Hey there am also a developer!"
+            android:editable="false"
+            android:enabled="false"
             android:key="userstatus"
-            android:summary="Tap to change your status"
             android:title="Hey there am also a developer!"></EditTextPreference>
 
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="example_switch"
+            android:summary="Notifications from groups and topics that you comment in"
+            android:title="Receive notifications from forums" />
 
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="Notifications settings"
+        android:title="Notifications">
+
+        <PreferenceScreen
+            android:icon="@drawable/ic_notifications_black_24dp"
+            android:key="notification"
+            android:persistent="false"
+            android:title="Notifications">
+
+            <SwitchPreference
+                android:defaultValue="true"
+                android:key="notifications_new_message"
+                android:title="New message notification" />
+
+            <!-- Allows the user to choose a ringtone in the 'notification' category. -->
+            <!-- NOTE: This preference will be enabled only when the checkbox above is checked. -->
+            <!-- NOTE: RingtonePreference's summary should be set to its value by the activity code. -->
+            <RingtonePreference
+                android:defaultValue="content://settings/system/notification_sound"
+                android:dependency="notifications_new_message"
+                android:key="notifications_new_message_ringtone"
+                android:ringtoneType="notification"
+                android:title="Ringtone" />
+
+            <!-- NOTE: This preference will be enabled only when the checkbox above is checked. -->
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="notifications_new_message"
+                android:key="notifications_new_message_vibrate"
+                android:title="Vibrate" />
+
+        </PreferenceScreen>
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -40,6 +86,32 @@
 
         </PreferenceScreen>
 
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="Data &amp; Sync"
+        android:title="Data and Sync">
+        <PreferenceScreen
+            android:key="data"
+            android:persistent="false"
+            android:title="Data &amp; Sync">
+
+            <ListPreference
+                android:defaultValue="180"
+                android:entries="@array/pref_sync_frequency_titles"
+                android:entryValues="@array/pref_sync_frequency_values"
+                android:key="sync_frequency"
+                android:negativeButtonText="@null"
+                android:positiveButtonText="@null"
+                android:title="Sync frequency" />
+
+            <!-- This preference simply launches an intent when selected. Use this UI sparingly, per
+                 design guidelines. -->
+            <Preference android:title="System sync settings">
+                <intent android:action="android.settings.SYNC_SETTINGS" />
+            </Preference>
+
+        </PreferenceScreen>
     </PreferenceCategory>
 
     <PreferenceCategory

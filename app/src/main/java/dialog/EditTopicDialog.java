@@ -39,7 +39,7 @@ public class EditTopicDialog extends DialogFragment {
     public static EditTopicDialog newInstance(String mTopicName, String mTopicID) {
         EditTopicDialog editTopicDialog = new EditTopicDialog();
         Bundle bundle = new Bundle();
-        bundle.putString(Constants.KEY_LIST_NAME, mTopicID);
+        bundle.putString(Constants.KEY_LIST_NAME, mTopicName);
         bundle.putString(Constants.KEY_LIST_ID, mTopicID);
         editTopicDialog.setArguments(bundle);
         return editTopicDialog;
@@ -68,7 +68,7 @@ public class EditTopicDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.CustomTheme_Dialog);
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_edit_topic, null);
-        editTopicName = (EditText) view.findViewById(R.id.edit_group_dialog);
+        editTopicName = (EditText) view.findViewById(R.id.edit_topic_dialog);
         editTopicName.setText(mTopicName);
         /**
          * Call editGroup() when user taps "Done" keyboard action
@@ -116,6 +116,11 @@ public class EditTopicDialog extends DialogFragment {
              */
             DatabaseReference topicRef = tDatabaseReference.child(topicID).child("topic_name");
             topicRef.setValue(userenteredtext);
+            /**
+             * close the dialog
+             */
+            EditTopicDialog.this.getDialog().cancel();
+
 
         }
     }

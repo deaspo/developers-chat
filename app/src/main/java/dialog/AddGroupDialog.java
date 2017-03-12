@@ -133,10 +133,10 @@ public class AddGroupDialog extends DialogFragment {
             HashMap<String, Object> timestampCreated = new HashMap<>();
             timestampCreated.put(Constants.FIREBASE_PROPERTY_TIMESTAMP, ServerValue.TIMESTAMP);
 
-            /* Build the topic list */
-            Items_forums newTopicList = new Items_forums(userEnteredName, mUsername, groupId, mUserEmail, timestampCreated);
+            /* Build the group list */
+            Items_forums newGroupList = new Items_forums(userEnteredName, mUsername, groupId, mUserEmail, timestampCreated);
 
-            groupref.setValue(newTopicList);
+            groupref.setValue(newGroupList);
 
             /* Close the dialog fragment */
             AddGroupDialog.this.getDialog().cancel();
