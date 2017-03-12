@@ -67,8 +67,10 @@ import github.ankushsachdeva.emojicon.EmojiconsPopup.OnEmojiconBackspaceClickedL
 import github.ankushsachdeva.emojicon.EmojiconsPopup.OnSoftKeyboardOpenCloseListener;
 import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
+import static com.deaspostudios.devchats.MainActivity.mDeviceToken;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.sendChatNotification;
 import static fragment.fav.cDatabaseReference;
 
 
@@ -95,7 +97,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
     private ImageButton photopicker, enterButton;
     private DatabaseReference senderRef;
     private ChildEventListener messageRefListener;
-    private String selected_user, selected_user_id;
+    private String token,selected_user, selected_user_id;
     private ArrayList<Message> chat_messageList;
     private String sendKey;
     //Firebase storage & Database
@@ -139,13 +141,6 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         return mediaFile;
     }
 
-    /**
-     * Launching app to capture photo
-     * @param items_forums
-     * @param currentUserEmail
-     * @return
-     */
-
     @Override
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,6 +156,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         Intent intent = this.getIntent();
         selected_user = intent.getStringExtra("username");
         selected_user_id = intent.getStringExtra("userid");
+        token = intent.getStringExtra("token");
 
         if (selected_user == null || selected_user_id == null) {
             /* No point in continuing without a valid selected user. */
@@ -282,6 +278,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         i.putExtra("filePath", fileUri.toString());
         i.putExtra("isImage", isImage);
         i.putExtra("selected_user_id", selected_user_id);
+        i.putExtra("token", token);
         startActivity(i);
     }
 
@@ -512,16 +509,13 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
                 Map<String, Object> childUpdates = new HashMap<>();
 
-                /**
-                 * I need to update
-                 */
 
                 childUpdates.put(mUID + "/" + "conversations" + "/" + selected_user_id + "/" + "messages" + "/" + sendKey, msgValues);
                 childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
 
                 cDatabaseReference.updateChildren(childUpdates);
-                //FirebaseMessaging.getInstance().send();
-
+                //Send notification
+                sendChatNotification(mUID,mDeviceToken,"none","2",token,mUsername,emojiconEditText.getText().toString());
 
                 //clear the input box
                 emojiconEditText.setText("");
@@ -644,6 +638,9 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
                         childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
 
                         cDatabaseReference.updateChildren(childUpdates);
+
+                        //Send notification
+                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,mUsername,"Picture message");
                         chatspb.setVisibility(ProgressBar.GONE);
 
                     }

@@ -1,6 +1,8 @@
 package activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,14 +13,10 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 
 import com.alexvasilkov.gestures.views.GestureImageView;
 import com.deaspostudios.devchats.MainActivity;
@@ -26,6 +24,7 @@ import com.deaspostudios.devchats.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -34,11 +33,13 @@ import java.util.Date;
 
 import adapter.Message;
 
+import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.sendTopicNotification;
 import static fragment.topic.tDatabaseReference;
-import static ui.TopicActivity.topicStorageRef;
 import static ui.TopicActivity.messageAdapter_topic;
+import static ui.TopicActivity.topicStorageRef;
 
 /**
  * Created by polyc on 07/03/2017.
@@ -48,16 +49,16 @@ public class UploadActivity_Topic extends Activity {
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
     private static DatabaseReference currentForumRef, currentForumMessages;
-
+    boolean isImage;
     private ProgressBar progressBar;
     private String filePath = null;
     private String topicId = null;
+    private String topicName;
     private Uri fileUri = null;
     private TextView txtPercentage;
     private GestureImageView imgPreview;
     private VideoView vidPreview;
     private Button btnUpload;
-    boolean isImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +86,7 @@ public class UploadActivity_Topic extends Activity {
          * current db ref
          */
         topicId = i.getStringExtra("topicid");
+        topicName = i.getStringExtra("topicname");
         currentForumRef = tDatabaseReference.child(topicId);
         currentForumMessages = currentForumRef.child("messages");
 
@@ -135,6 +137,23 @@ public class UploadActivity_Topic extends Activity {
         }
     }
 
+    /**
+     * Method to show alert dialog
+     * */
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message).setTitle("Response from Servers")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // close the app
+                        finish();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
     private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
 
         @Override
@@ -180,6 +199,15 @@ public class UploadActivity_Topic extends Activity {
                         if (messageAdapter_topic != null) {
                             messageAdapter_topic.notifyDataSetChanged(); }
                         currentForumMessages.push().setValue(message);
+                        /**
+                         * subcribes the sender to the topic
+                         *
+                         */
+                        //start subcribe
+                        FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
+                        // [END subscribe_topics]
+                        //send message to all the topic subscribers
+                        sendTopicNotification(escapeSpace(topicId), topicName,mUsername, downloadUri.toString(),"Topic","1","Picture maessage");
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -216,6 +244,15 @@ public class UploadActivity_Topic extends Activity {
                         if (messageAdapter_topic != null) {
                             messageAdapter_topic.notifyDataSetChanged(); }
                         currentForumMessages.push().setValue(message);
+                        /**
+                         * subcribes the sender to the topic
+                         *
+                         */
+                        //start subcribe
+                        FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
+                        // [END subscribe_topics]
+                        //send message to all the topic subscribers
+                        sendTopicNotification(escapeSpace(topicId), topicName,mUsername, "none","Topic","1","Video message");
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -249,22 +286,5 @@ public class UploadActivity_Topic extends Activity {
 
             super.onPostExecute(result);
         }
-    }
-
-    /**
-     * Method to show alert dialog
-     * */
-    private void showAlert(String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(message).setTitle("Response from Servers")
-                .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // close the app
-                        finish();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
     }
 }

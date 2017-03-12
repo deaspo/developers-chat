@@ -51,10 +51,12 @@ public class RecyclerAdapterUser extends RecyclerView.Adapter<RecyclerAdapterUse
             holder.user_name.setText("You");
             holder.last_active.setText("Now");
             holder.user_uid.setText("Just you");
+            holder.devicetoken.setText("Your device");
         } else {
             holder.user_name.setText(user.getName());
             holder.last_active.setText("Last Active: " + user.getDate_joined());
             holder.user_uid.setText(user.getUid());
+            holder.devicetoken.setText(user.getDevicetoken());
         }
 
         /**
@@ -99,7 +101,7 @@ public class RecyclerAdapterUser extends RecyclerView.Adapter<RecyclerAdapterUse
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView user_name, last_active, user_uid, user_status;
+        TextView user_name, last_active, user_uid, user_status, devicetoken;
         ImageView user_ppic;
 
         public MyViewHolder(final View view) {
@@ -107,6 +109,7 @@ public class RecyclerAdapterUser extends RecyclerView.Adapter<RecyclerAdapterUse
             user_name = (TextView) view.findViewById(R.id.itemName);
             last_active = (TextView) view.findViewById(R.id.date_user_joined);
             user_uid = (TextView) view.findViewById(R.id.user_uid);
+            devicetoken = (TextView) view.findViewById(R.id.device_token);
             user_status = (TextView) view.findViewById(R.id.user_status);
             user_ppic = (ImageView) view.findViewById(R.id.pprofile);
         }

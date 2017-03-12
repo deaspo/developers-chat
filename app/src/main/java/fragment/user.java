@@ -31,6 +31,7 @@ import adapter.RecyclerAdapterUser;
 import adapter.User;
 import ui.Chat;
 
+import static com.deaspostudios.devchats.MainActivity.mDeviceToken;
 import static com.deaspostudios.devchats.MainActivity.mStatus;
 import static com.deaspostudios.devchats.MainActivity.mStatusVisble;
 import static com.deaspostudios.devchats.MainActivity.mUserEmail;
@@ -158,7 +159,7 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     }
 
     public static void setUsername(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
+        User user_logged = new User(mDeviceToken,uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).setValue(user_logged);
         }
@@ -167,7 +168,7 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     }
 
     public static void removeUserName(String uName, String mEncodedEmail, String uUid) {
-        User user_logged = new User(uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
+        User user_logged = new User(mDeviceToken,uName, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         if (user_logged != null) {
             uDatabaseReference.child(user_logged.getUid()).removeValue();
         }
@@ -208,6 +209,7 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
                     Intent intent = new Intent(getActivity(), Chat.class);
                     intent.putExtra("username", user.getName());
                     intent.putExtra("userid", user.getUid());
+                    intent.putExtra("token", user.getDevicetoken());
                     /**
                      * start activity
                      */
@@ -269,17 +271,17 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     @Override
     public void onPause() {
         super.onPause();
-        detachUserDatabaseListener();
+        /*detachUserDatabaseListener();
         onlineUsers.clear();
-        usersAdapter.notifyDataSetChanged();
+        usersAdapter.notifyDataSetChanged();*/
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        detachUserDatabaseListener();
+        /*detachUserDatabaseListener();
         onlineUsers.clear();
-        usersAdapter.notifyDataSetChanged();
+        usersAdapter.notifyDataSetChanged();*/
     }
 
     @Override
@@ -293,7 +295,7 @@ public class user extends Fragment implements SwipeRefreshLayout.OnRefreshListen
 
     @Override
     public void onRefresh() {
-        attachUserDatabaseListener();
+        onResume();
     }
 
     /**

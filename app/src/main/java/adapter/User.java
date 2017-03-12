@@ -13,6 +13,7 @@ public class User {
     private String status;
     private Boolean status_visible;
     private Boolean user_visible;
+    private String devicetoken;
 
 
     /**
@@ -29,7 +30,8 @@ public class User {
      * @param email
      * @param uid
      */
-    public User(String name, String email, String uid, String last_active, String ppic, String status, Boolean status_visible, Boolean user_visible) {
+    public User(String devicetoken,String name, String email, String uid, String last_active, String ppic, String status, Boolean status_visible, Boolean user_visible) {
+        this.devicetoken = devicetoken;
         this.name = name;
         this.email = email;
         this.uid = uid;
@@ -38,6 +40,14 @@ public class User {
         this.status_visible = status_visible;
         this.user_visible = user_visible;
         this.last_active = last_active;
+    }
+
+    public String getDevicetoken() {
+        return devicetoken;
+    }
+
+    public void setDevicetoken(String devicetoken) {
+        this.devicetoken = devicetoken;
     }
 
     public String getName() {

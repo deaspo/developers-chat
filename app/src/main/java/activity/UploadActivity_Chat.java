@@ -33,8 +33,10 @@ import java.util.Map;
 
 import adapter.Message;
 
+import static com.deaspostudios.devchats.MainActivity.mDeviceToken;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.sendChatNotification;
 import static fragment.fav.cDatabaseReference;
 import static ui.Chat.chat_messageAdapter;
 import static ui.Chat.senderStorageRef;
@@ -46,17 +48,17 @@ import static ui.Chat.senderStorageRef;
 public class UploadActivity_Chat extends Activity {
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    boolean isImage;
     private ProgressBar progressBar;
     private String filePath = null;
     private String sendKey;
     private String selected_user_id = null;
+    private String token = null;
     private Uri fileUri = null;
     private TextView txtPercentage;
     private GestureImageView imgPreview;
     private VideoView vidPreview;
     private Button btnUpload;
-    boolean isImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +86,11 @@ public class UploadActivity_Chat extends Activity {
          * current db ref
          */
         selected_user_id = i.getStringExtra("selected_user_id");
+
+        /**
+         * selected user device token
+         */
+        token = i.getStringExtra("token");
 
 
         if (filePath != null) {
@@ -130,6 +137,23 @@ public class UploadActivity_Chat extends Activity {
             // start playing
             vidPreview.start();
         }
+    }
+
+    /**
+     * Method to show alert dialog
+     * */
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message).setTitle("Response from Servers")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // close the app
+                        finish();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
@@ -191,6 +215,9 @@ public class UploadActivity_Chat extends Activity {
 
                         cDatabaseReference.updateChildren(childUpdates);
 
+                        //Send notification
+                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,mUsername,"Picture message");
+
                         // updating
                         progressBar.setVisibility(View.GONE);
                         txtPercentage.setText("");
@@ -240,6 +267,9 @@ public class UploadActivity_Chat extends Activity {
 
                         cDatabaseReference.updateChildren(childUpdates);
 
+                        //Send notification
+                        sendChatNotification(mUID,mDeviceToken,"none","2",token,mUsername,"Video message");
+
                         // updating
                         progressBar.setVisibility(View.GONE);
                         txtPercentage.setText("");
@@ -272,23 +302,6 @@ public class UploadActivity_Chat extends Activity {
 
             super.onPostExecute(result);
         }
-    }
-
-    /**
-     * Method to show alert dialog
-     * */
-    private void showAlert(String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(message).setTitle("Response from Servers")
-                .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // close the app
-                        finish();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
     }
 
 }

@@ -28,7 +28,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -114,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private static final String urlNavHeaderBg = "http://api.androidhive.info/images/nav-menu-header-bg.jpg";
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
-    public static String mUID, mStatus, mEncodedEmail, mUsername, mUserphoto, mUserEmail;
+    public static String mUID, mStatus, mEncodedEmail, mUsername, mUserphoto, mUserEmail, mDeviceToken;
     public static Boolean mVisible, mStatusVisble;
     public static DatabaseReference usersDbRef;
     public static ChildEventListener usersChildEventListener;
@@ -198,15 +197,45 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         return name.replace(" ", "_");
     }
 
-    public static void sendTopicNotification(String topicid, String message) {
+    public static void sendTopicNotification(String topicid, String topicname,String sender, String imageurl, String viewpager, String flag, String message) {
         FirebaseDatabase topicsDb = FirebaseDatabase.getInstance();
         final DatabaseReference topicsRef = topicsDb.getReference().child("topicsRequest");
 
         Map notification = new HashMap<>();
+        notification.put("imageurl",imageurl);
+        notification.put("viewpager",viewpager);
+        notification.put("flag",flag);
+        notification.put("topicname", topicname);
+        notification.put("sender", sender);
         notification.put("topicid", topicid);
         notification.put("message", message);
 
         topicsRef.push().setValue(notification);
+    }
+
+    public static void sendChatNotification(String senderid,String sendertoken,String imageurl,String flag,String devicetoken,String sender, String message) {
+        FirebaseDatabase chatsdb = FirebaseDatabase.getInstance();
+        final DatabaseReference chatsref = chatsdb.getReference().child("chatsrequest");
+
+        Map notification = new HashMap<>();
+        notification.put("senderid",senderid);
+        notification.put("sendertoken",sendertoken);
+        notification.put("imageurl",imageurl);
+        notification.put("flag  ",flag);
+        notification.put("token",devicetoken);
+        notification.put("sender",sender);
+        notification.put("message",message);
+
+        chatsref.push().setValue(notification);
+    }
+
+    public static String userToken() {
+        /**
+         * extracts the user token
+         */
+        // Get token
+        String token = FirebaseInstanceId.getInstance().getToken();
+        return  token;
     }
 
     @Override
@@ -291,8 +320,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         // load toolbar titles from string resources
         activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
 
-        loadProfile();
-
         setUpNavigationView();
 
         mHandler = new Handler();
@@ -361,7 +388,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         this.registerReceiver(connection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        userToken();
 
     }
 
@@ -652,6 +678,36 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     @Override
     protected void onPause() {
         super.onPause();
+        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+        if (mAuthStateListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+        }
+        if (mUsername != null && mUserEmail != null && mUID != null) {
+            removeUserName(mUsername, mUserEmail, mUID); *//* only carry out the action if there is an existing user *//*
+        }
+        *//**
+         * plan is to detach and clear all the listeners here
+         *//*
+        detachUserDatabaseListener();
+        onlineUsers.clear();
+        usersAdapter.notifyDataSetChanged();
+        *//* chat Db *//*
+        deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
+        *//* group Db *//*
+        detachGroupDatabaseListener();
+        groups.clear();
+        adapter.notifyDataSetChanged();
+        *//* Topic Db *//*
+        detachTopicDatabaseListener();
+        topics.clear();
+        topicsAdapter.notifyDataSetChanged();*/
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
         if (mAuthStateListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
@@ -659,22 +715,24 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         if (mUsername != null && mUserEmail != null && mUID != null) {
             removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
         }
-
+        /**
+         * plan is to detach and clear all the listeners here
+         */
         detachUserDatabaseListener();
         onlineUsers.clear();
         usersAdapter.notifyDataSetChanged();
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mUsername != null && mUserEmail != null && mUID != null) {
-            removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
-        }
-        detachUserDatabaseListener();
-        onlineUsers.clear();
-        usersAdapter.notifyDataSetChanged();
+        /* chat Db */
+        deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
+        /* group Db */
+        detachGroupDatabaseListener();
+        groups.clear();
+        adapter.notifyDataSetChanged();
+        /* Topic Db */
+        detachTopicDatabaseListener();
+        topics.clear();
+        topicsAdapter.notifyDataSetChanged();
     }
 
     private void OnSignedInialize(String username, String useremail, String uid) {
@@ -687,7 +745,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         /**
          * setting the preference values
          */
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         //mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
         mUserphoto = userpreferences.getString("userpic", null);
@@ -699,8 +756,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             mStatusVisble = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
             mVisible = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
         }
+        if (mDeviceToken == null) {
+            mDeviceToken = userToken();
+        }
         setDefaults();
         loadDetailsDrawer();
+        loadProfile();
         addUser(username, useremail, uid);
         setUsername(mUsername, useremail, uid);
         //chats
@@ -850,7 +911,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     private void addUser(String mUsername, String mEncodedEmail, String uUid) {
         mUID = uUid;
-        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
+        User user = new User(mDeviceToken,mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         usersDbRef.child(uUid).setValue(user);
 
         /*chatsFirebaseDatabase =FirebaseDatabase.getInstance();
@@ -931,18 +992,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             }
         });
         adapter.notifyDataSetChanged();
-    }
-
-    private void userToken() {
-        /**
-         * extracts the user token
-         */
-        // Get token
-        String token = FirebaseInstanceId.getInstance().getToken();
-
-        // Log and toast
-        Log.d("Token for Polycarp", token);
-        System.out.println("Token for Polycarp " + token);
     }
 
     private void loadDetailsDrawer() {

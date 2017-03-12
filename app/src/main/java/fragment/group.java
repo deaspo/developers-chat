@@ -235,17 +235,14 @@ public class group extends Fragment implements SwipeRefreshLayout.OnRefreshListe
     @Override
     public void onStop() {
         super.onStop();
-        detachGroupDatabaseListener();
+        /*detachGroupDatabaseListener();
         groups.clear();
-        adapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();*/
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        detachGroupDatabaseListener();
-        groups.clear();
-        adapter.notifyDataSetChanged();
     }
 
     @Override

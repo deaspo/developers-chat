@@ -222,6 +222,7 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
                     Intent intent = new Intent(getActivity(), Chat.class);
                     intent.putExtra("username", user.getName());
                     intent.putExtra("userid", user.getUid());
+                    intent.putExtra("token", user.getDevicetoken());
                     /**
                      * start activity
                      */
@@ -296,18 +297,15 @@ public class fav extends Fragment implements SwipeRefreshLayout.OnRefreshListene
     @Override
     public void onPause() {
         super.onPause();
-        deatchChatDb();
-        chattingUsers.clear();
-        chattingAdapter.notifyDataSetChanged();
 
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        deatchChatDb();
+        /*deatchChatDb();
         chattingUsers.clear();
-        chattingAdapter.notifyDataSetChanged();
+        chattingAdapter.notifyDataSetChanged();*/
     }
 
     @Override

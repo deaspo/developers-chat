@@ -155,13 +155,6 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         return mediaFile;
     }
 
-    /**
-     * Launching app to capture photo
-     * @param items_forums
-     * @param currentUserEmail
-     * @return
-     */
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -311,6 +304,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
         i.putExtra("filePath", fileUri.toString());
         i.putExtra("isImage", isImage);
         i.putExtra("groupid", groupId);
+        i.putExtra("groupname", groupName);
         startActivity(i);
     }
 
@@ -517,7 +511,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                 FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
                 // [END subscribe_topics]
                 //send message to all the topic subscribers
-                sendTopicNotification(escapeSpace(groupId), emojiconEditText.getText().toString());
+                sendTopicNotification(escapeSpace(groupId), groupName,mUsername,"none","Group","1",emojiconEditText.getText().toString());
                 // clear the input box
                 emojiconEditText.setText("");
             }
@@ -739,6 +733,15 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                     if (messageAdapter_group != null)
                         messageAdapter_group.notifyDataSetChanged();
                     currentForumMessages.push().setValue(message);
+                    /**
+                     * subcribes the sender to the topic group
+                     */
+                    //start subcribe
+
+                    FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
+                    // [END subscribe_topics]
+                    //send message to all the topic subscribers
+                    sendTopicNotification(escapeSpace(groupId), groupName,mUsername,downloadUri.toString(),"Group","1","Picture message");
                     forumspb.setVisibility(View.GONE);
 
 
