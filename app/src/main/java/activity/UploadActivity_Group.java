@@ -1,6 +1,8 @@
 package activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,14 +13,10 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 
 import com.alexvasilkov.gestures.views.GestureImageView;
 import com.deaspostudios.devchats.MainActivity;
@@ -26,6 +24,7 @@ import com.deaspostudios.devchats.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -34,8 +33,10 @@ import java.util.Date;
 
 import adapter.Message;
 
+import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.sendTopicNotification;
 import static fragment.group.gDatabaseReference;
 import static ui.GroupActivity.groupStorageRef;
 import static ui.GroupActivity.messageAdapter_group;
@@ -48,17 +49,17 @@ public class UploadActivity_Group extends Activity {
     // LogCat tag
     private static final String TAG = MainActivity.class.getSimpleName();
     private static DatabaseReference currentForumRef, currentForumMessages;
-
+    boolean isImage;
+    long totalSize = 0;
     private ProgressBar progressBar;
     private String filePath = null;
     private String groupId = null;
+    private String groupname = null;
     private Uri fileUri = null;
     private TextView txtPercentage;
     private GestureImageView imgPreview;
     private VideoView vidPreview;
     private Button btnUpload;
-    boolean isImage;
-    long totalSize = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +87,7 @@ public class UploadActivity_Group extends Activity {
          * current db ref
          */
         groupId = i.getStringExtra("groupid");
+        groupname = i.getStringExtra("groupname");
         currentForumRef = gDatabaseReference.child(groupId);
         currentForumMessages = currentForumRef.child("messages");
 
@@ -136,6 +138,23 @@ public class UploadActivity_Group extends Activity {
         }
     }
 
+    /**
+     * Method to show alert dialog
+     * */
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message).setTitle("Response from Servers")
+                .setCancelable(false)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // close the app
+                        finish();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
     private class UploadFileToServer extends AsyncTask<Void, Integer, String> {
 
         @Override
@@ -181,6 +200,15 @@ public class UploadActivity_Group extends Activity {
                         if (messageAdapter_group != null) {
                             messageAdapter_group.notifyDataSetChanged(); }
                         currentForumMessages.push().setValue(message);
+                        /**
+                         * subcribes the sender to the topic group
+                         */
+                        //start subcribe
+
+                        FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
+                        // [END subscribe_topics]
+                        //send message to all the topic subscribers
+                        sendTopicNotification(escapeSpace(groupId), groupname,mUsername,downloadUri.toString(),"Group","1","Picture message");
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -217,6 +245,15 @@ public class UploadActivity_Group extends Activity {
                         if (messageAdapter_group != null) {
                             messageAdapter_group.notifyDataSetChanged(); }
                         currentForumMessages.push().setValue(message);
+                        /**
+                         * subcribes the sender to the topic group
+                         */
+                        //start subcribe
+
+                        FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
+                        // [END subscribe_topics]
+                        //send message to all the topic subscribers
+                        sendTopicNotification(escapeSpace(groupId), groupname,mUsername,"none","Group","1","Video message");
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -250,22 +287,5 @@ public class UploadActivity_Group extends Activity {
 
             super.onPostExecute(result);
         }
-    }
-
-    /**
-     * Method to show alert dialog
-     * */
-    private void showAlert(String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(message).setTitle("Response from Servers")
-                .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        // close the app
-                        finish();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
     }
 }

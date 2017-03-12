@@ -13,6 +13,7 @@ import java.util.Date;
 
 import adapter.User;
 
+import static com.deaspostudios.devchats.MainActivity.mDeviceToken;
 import static com.deaspostudios.devchats.MainActivity.mStatus;
 import static com.deaspostudios.devchats.MainActivity.mStatusVisble;
 import static com.deaspostudios.devchats.MainActivity.mUID;
@@ -42,7 +43,7 @@ public class MyPreferenceActivity extends PreferenceActivity implements SharedPr
     static Preference userpic;
 
     public static void updateUser() {
-        User user = new User(mUsername, mUserEmail, mUID, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
+        User user = new User(mDeviceToken,mUsername, mUserEmail, mUID, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         /**
          * updates the user db
          */

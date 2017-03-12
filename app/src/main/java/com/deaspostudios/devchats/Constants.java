@@ -32,17 +32,6 @@ public final class Constants {
      */
     public static final String ORDER_BY_KEY = "orderByPushKey";
     public static final String ORDER_BY_OWNER_EMAIL = "orderByOwnerEmail";
-
-    /**
-     * Constants for Settings
-     */
-    public static String USER_NAME = "USER_NAME";
-    public static String USER_STATUS = "Hey there am also a developer!";
-    public static String STATUS_VISIBLE = "true";
-    public static String USER_PIC = "USER_PIC";
-    public static String USER_BG = "USER_BG";
-    public static String USER_VISIBLE = "true";
-
     /**
      *
      */
@@ -53,16 +42,22 @@ public final class Constants {
     // broadcast receiver intent filters
     public static final String REGISTRATION_COMPLETE = "registrationComplete";
     public static final String PUSH_NOTIFICATION = "pushNotification";
-
     // type of push messages
     public static final int PUSH_TYPE_CHATROOM = 1;
     public static final int PUSH_TYPE_USER = 2;
-
-
     /**
      * upload variables
      */
     // Directory name to store captured images and videos
-    public static final String IMAGE_DIRECTORY_NAME = "Android File Upload";
+    public static final String IMAGE_DIRECTORY_NAME = "Developers Chat File Upload";
+    /**
+     * Constants for Settings
+     */
+    public static String USER_NAME = "USER_NAME";
+    public static String USER_STATUS = "Hey there am also a developer!";
+    public static String STATUS_VISIBLE = "true";
+    public static String USER_PIC = "USER_PIC";
+    public static String USER_BG = "USER_BG";
+    public static String USER_VISIBLE = "true";
 
 }

@@ -67,14 +67,29 @@ import github.ankushsachdeva.emojicon.EmojiconsPopup.OnEmojiconBackspaceClickedL
 import github.ankushsachdeva.emojicon.EmojiconsPopup.OnSoftKeyboardOpenCloseListener;
 import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
+import static com.deaspostudios.devchats.MainActivity.mDeviceToken;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.sendChatNotification;
 import static fragment.fav.cDatabaseReference;
 
 
 public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    /**
+     * Uploading media files
+     * @param savedInstanceState
+     */
+    // LogCat tag
+    private static final String TAG = MainActivity.class.getSimpleName();
+    // Camera activity request codes
+    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
+    public static MessageAdapter chat_messageAdapter;
+    public static StorageReference senderStorageRef;
     private static SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar chatspb;
     private ListView chatListView;
@@ -82,29 +97,49 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
     private ImageButton photopicker, enterButton;
     private DatabaseReference senderRef;
     private ChildEventListener messageRefListener;
-    private String selected_user, selected_user_id;
-    public static MessageAdapter chat_messageAdapter;
+    private String token,selected_user, selected_user_id;
     private ArrayList<Message> chat_messageList;
     private String sendKey;
     //Firebase storage & Database
     private FirebaseStorage senderStorage;
-    public static StorageReference senderStorageRef;
+    private Uri fileUri; // file url to store image/video
 
     /**
-     * Uploading media files
-     * @param savedInstanceState
+     * returning image / video
      */
-    // LogCat tag
-    private static final String TAG = MainActivity.class.getSimpleName();
+    private static File getOutputMediaFile(int type) {
 
-    // Camera activity request codes
-    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
-    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
+        // External sdcard location
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                Constants.IMAGE_DIRECTORY_NAME);
 
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    public static final int MEDIA_TYPE_VIDEO = 2;
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d(TAG, "Oops! Failed create "
+                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
+                return null;
+            }
+        }
 
-    private Uri fileUri; // file url to store image/video
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
+                Locale.getDefault()).format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "IMG_" + timeStamp + ".jpg");
+        } else if (type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "VID_" + timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
 
     @Override
 
@@ -121,6 +156,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         Intent intent = this.getIntent();
         selected_user = intent.getStringExtra("username");
         selected_user_id = intent.getStringExtra("userid");
+        token = intent.getStringExtra("token");
 
         if (selected_user == null || selected_user_id == null) {
             /* No point in continuing without a valid selected user. */
@@ -146,12 +182,6 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
     }
 
-    /**
-     * Launching app to capture photo
-     * @param items_forums
-     * @param currentUserEmail
-     * @return
-     */
     /**
      * Checking device has camera hardware or not
      * */
@@ -223,6 +253,11 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         outState.putParcelable("file_uri", fileUri);
     }
 
+
+    /**
+     * ------------ Helper Methods ----------------------
+     * */
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -231,11 +266,6 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         fileUri = savedInstanceState.getParcelable("file_uri");
     }
 
-
-    /**
-     * ------------ Helper Methods ----------------------
-     * */
-
     /**
      * Creating file uri to store image/video
      */
@@ -243,48 +273,12 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
         return Uri.fromFile(getOutputMediaFile(type));
     }
 
-    /**
-     * returning image / video
-     */
-    private static File getOutputMediaFile(int type) {
-
-        // External sdcard location
-        File mediaStorageDir = new File(
-                Environment
-                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                Constants.IMAGE_DIRECTORY_NAME);
-
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.d(TAG, "Oops! Failed create "
-                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
-                Locale.getDefault()).format(new Date());
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                    + "IMG_" + timeStamp + ".jpg");
-        } else if (type == MEDIA_TYPE_VIDEO) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                    + "VID_" + timeStamp + ".mp4");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
-    }
-
     private void launchUploadActivity(boolean isImage){
         Intent i = new Intent(Chat.this, UploadActivity_Chat.class);
         i.putExtra("filePath", fileUri.toString());
         i.putExtra("isImage", isImage);
         i.putExtra("selected_user_id", selected_user_id);
+        i.putExtra("token", token);
         startActivity(i);
     }
 
@@ -515,15 +509,13 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
                 Map<String, Object> childUpdates = new HashMap<>();
 
-                /**
-                 * I need to update
-                 */
 
                 childUpdates.put(mUID + "/" + "conversations" + "/" + selected_user_id + "/" + "messages" + "/" + sendKey, msgValues);
                 childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
 
                 cDatabaseReference.updateChildren(childUpdates);
-
+                //Send notification
+                sendChatNotification(mUID,mDeviceToken,"none","2",token,mUsername,emojiconEditText.getText().toString());
 
                 //clear the input box
                 emojiconEditText.setText("");
@@ -646,6 +638,9 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
                         childUpdates.put(selected_user_id + "/" + "conversations" + "/" + mUID + "/" + "messages" + "/" + sendKey, msgValues);
 
                         cDatabaseReference.updateChildren(childUpdates);
+
+                        //Send notification
+                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,mUsername,"Picture message");
                         chatspb.setVisibility(ProgressBar.GONE);
 
                     }

@@ -231,17 +231,14 @@ public class topic extends Fragment implements SwipeRefreshLayout.OnRefreshListe
     @Override
     public void onPause() {
         super.onPause();
-        detachTopicDatabaseListener();
-        topics.clear();
-        topicsAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        detachTopicDatabaseListener();
+        /*detachTopicDatabaseListener();
         topics.clear();
-        topicsAdapter.notifyDataSetChanged();
+        topicsAdapter.notifyDataSetChanged();*/
     }
 
     @Override

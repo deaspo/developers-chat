@@ -74,7 +74,7 @@ import github.ankushsachdeva.emojicon.emoji.Emojicon;
 import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
-import static com.deaspostudios.devchats.MainActivity.navItemIndex;
+import static com.deaspostudios.devchats.MainActivity.sendTopicNotification;
 import static fragment.topic.tDatabaseReference;
 
 /**
@@ -82,8 +82,24 @@ import static fragment.topic.tDatabaseReference;
  */
 
 public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
     private static final int DEFAULT_MSG_LENGTH_LIMIT = 1000;
     private static final int RC_PHOTO_PICKER = 2;
+    /**
+            * Uploading media files
+    * @param savedInstanceState
+    */
+    // LogCat tag
+    private static final String TAG = MainActivity.class.getSimpleName();
+    // Camera activity request codes
+    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
+    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
+    public static StorageReference topicStorageRef;
+    /**
+     * using the  new adapter
+     */
+    public static MessageAdapter messageAdapter_topic;
     private static String topicId;
     private static SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar forumspb;
@@ -97,29 +113,53 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
     private ChildEventListener CurrentMessageRefListener;
     //Firebase storage & Database
     private FirebaseStorage topicStorage;
-    public static StorageReference topicStorageRef;
-    /**
-     * using the  new adapter
-     */
-    public static MessageAdapter messageAdapter_topic;
     private ArrayList<Message> messageList;
     private boolean currentUserIsCreator = false;
+    private Uri fileUri; // file url to store image/video
 
     /**
-            * Uploading media files
-    * @param savedInstanceState
-    */
-    // LogCat tag
-    private static final String TAG = MainActivity.class.getSimpleName();
+     * returning image / video
+     */
+    private static File getOutputMediaFile(int type) {
 
-    // Camera activity request codes
-    private static final int CAMERA_CAPTURE_IMAGE_REQUEST_CODE = 100;
-    private static final int CAMERA_CAPTURE_VIDEO_REQUEST_CODE = 200;
+        // External sdcard location
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                Constants.IMAGE_DIRECTORY_NAME);
 
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    public static final int MEDIA_TYPE_VIDEO = 2;
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d(TAG, "Oops! Failed create "
+                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
+                return null;
+            }
+        }
 
-    private Uri fileUri; // file url to store image/video
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
+                Locale.getDefault()).format(new Date());
+        File mediaFile;
+        if (type == MEDIA_TYPE_IMAGE) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "IMG_" + timeStamp + ".jpg");
+        } else if (type == MEDIA_TYPE_VIDEO) {
+            mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                    + "VID_" + timeStamp + ".mp4");
+        } else {
+            return null;
+        }
+
+        return mediaFile;
+    }
+
+    /**
+     * Launching app to capture photo
+     * @param items_forums
+     * @param currentUserEmail
+     * @return
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,12 +214,6 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     }
 
-    /**
-     * Launching app to capture photo
-     * @param items_forums
-     * @param currentUserEmail
-     * @return
-     */
     /**
      * Checking device has camera hardware or not
      * */
@@ -251,6 +285,11 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         outState.putParcelable("file_uri", fileUri);
     }
 
+
+    /**
+     * ------------ Helper Methods ----------------------
+     * */
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -259,11 +298,6 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         fileUri = savedInstanceState.getParcelable("file_uri");
     }
 
-
-    /**
-     * ------------ Helper Methods ----------------------
-     * */
-
     /**
      * Creating file uri to store image/video
      */
@@ -271,48 +305,12 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         return Uri.fromFile(getOutputMediaFile(type));
     }
 
-    /**
-     * returning image / video
-     */
-    private static File getOutputMediaFile(int type) {
-
-        // External sdcard location
-        File mediaStorageDir = new File(
-                Environment
-                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                Constants.IMAGE_DIRECTORY_NAME);
-
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.d(TAG, "Oops! Failed create "
-                        + Constants.IMAGE_DIRECTORY_NAME + " directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
-                Locale.getDefault()).format(new Date());
-        File mediaFile;
-        if (type == MEDIA_TYPE_IMAGE) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                    + "IMG_" + timeStamp + ".jpg");
-        } else if (type == MEDIA_TYPE_VIDEO) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                    + "VID_" + timeStamp + ".mp4");
-        } else {
-            return null;
-        }
-
-        return mediaFile;
-    }
-
     private void launchUploadActivity(boolean isImage){
         Intent i = new Intent(TopicActivity.this, UploadActivity_Topic.class);
         i.putExtra("filePath", fileUri.toString());
         i.putExtra("isImage", isImage);
         i.putExtra("topicid", topicId);
+        i.putExtra("topicname", topicName);
         startActivity(i);
     }
 
@@ -513,15 +511,17 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                 if (messageAdapter_topic != null)
                     messageAdapter_topic.notifyDataSetChanged();
                 currentForumMessages.push().setValue(message);
-                // clear the input box
-                emojiconEditText.setText("");
                 /**
                  * subcribes the sender to the topic
                  *
                  */
                 //start subcribe
-                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicName));
+                FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                 // [END subscribe_topics]
+                //send message to all the topic subscribers
+                sendTopicNotification(escapeSpace(topicId), topicName,mUsername, "none","Topic","1",emojiconEditText.getText().toString());
+                // clear the input box
+                emojiconEditText.setText("");
             }
         });
 
@@ -720,6 +720,15 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     if (messageAdapter_topic != null)
                         messageAdapter_topic.notifyDataSetChanged();
                     currentForumMessages.push().setValue(message);
+                    /**
+                     * subcribes the sender to the topic
+                     *
+                     */
+                    //start subcribe
+                    FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
+                    // [END subscribe_topics]
+                    //send message to all the topic subscribers
+                    sendTopicNotification(escapeSpace(topicId), topicName,mUsername, downloadUri.toString(),"Topic","1","Picture message");
                     forumspb.setVisibility(ProgressBar.GONE);
 
 
