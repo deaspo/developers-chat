@@ -491,7 +491,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
             @Override
             public void onClick(View view) {
                 /**
-                 * implementing new changes from whatsapp
+                 * implementing new changes
                  */
                 final Message message = new Message();
                 message.setMessageStatus(Status.SENT);
@@ -511,7 +511,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                 FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
                 // [END subscribe_topics]
                 //send message to all the topic subscribers
-                sendTopicNotification(escapeSpace(groupId), groupName,mUsername,"none","Group","1",emojiconEditText.getText().toString());
+                sendTopicNotification(escapeSpace(groupId), escapeSpace(groupName),escapeSpace(mUsername),mUID,"none","Group","1",escapeSpace(emojiconEditText.getText().toString()));
                 // clear the input box
                 emojiconEditText.setText("");
             }
@@ -741,7 +741,7 @@ public class GroupActivity extends AppCompatActivity implements SwipeRefreshLayo
                     FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
                     // [END subscribe_topics]
                     //send message to all the topic subscribers
-                    sendTopicNotification(escapeSpace(groupId), groupName,mUsername,downloadUri.toString(),"Group","1","Picture message");
+                    sendTopicNotification(escapeSpace(groupId), escapeSpace(groupName),escapeSpace(mUsername), mUID,downloadUri.toString(),"Group","1",escapeSpace("Picture message"));
                     forumspb.setVisibility(View.GONE);
 
 
