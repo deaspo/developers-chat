@@ -67,6 +67,7 @@ import github.ankushsachdeva.emojicon.EmojiconsPopup.OnEmojiconBackspaceClickedL
 import github.ankushsachdeva.emojicon.EmojiconsPopup.OnSoftKeyboardOpenCloseListener;
 import github.ankushsachdeva.emojicon.emoji.Emojicon;
 
+import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mDeviceToken;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
@@ -515,7 +516,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
                 cDatabaseReference.updateChildren(childUpdates);
                 //Send notification
-                sendChatNotification(mUID,mDeviceToken,"none","2",token,mUsername,emojiconEditText.getText().toString());
+                sendChatNotification(mUID,mDeviceToken,"none","2",token,escapeSpace(mUsername),escapeSpace(emojiconEditText.getText().toString()));
 
                 //clear the input box
                 emojiconEditText.setText("");
@@ -640,7 +641,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
                         cDatabaseReference.updateChildren(childUpdates);
 
                         //Send notification
-                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,mUsername,"Picture message");
+                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,escapeSpace(mUsername),escapeSpace("Picture message"));
                         chatspb.setVisibility(ProgressBar.GONE);
 
                     }

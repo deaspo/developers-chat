@@ -37,7 +37,8 @@ import com.google.firebase.messaging.RemoteMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static com.deaspostudios.devchats.MainActivity.mUsername;
+import static com.deaspostudios.devchats.MainActivity.mUID;
+import static com.deaspostudios.devchats.MainActivity.unescapeSpace;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -53,69 +54,40 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         if (remoteMessage == null) {return;}
-        //check if message contain notification payload
-        if (remoteMessage.getNotification() != null) {
-            Log.e(TAG, "Notification Body: " + remoteMessage.getNotification().getBody());
-            //sendNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
-        }
-        // Check if message contains a data payload.
-        if (remoteMessage.getData().size() > 0) {
-            Log.e(TAG, "Data Payload: " + remoteMessage.getData().toString());
+        //check if message contain notification and data payload  //messages coming from the app
+        if (remoteMessage.getNotification() != null && remoteMessage.getData().size() > 0) {
             try {
                 JSONObject json = new JSONObject(remoteMessage.getData().toString());
-                handleDataMessage(json);
+                handleDataMessage(remoteMessage.getNotification().getTitle(),json);
             } catch (Exception e) {
                 Log.e(TAG, "Exception: " + e.getMessage());
             }
+
+        } else { // notifications only containing notification payload
+            sendNotification(remoteMessage.getNotification().getTitle(),remoteMessage.getNotification().getBody());
         }
-
-
-        // TODO(developer): Handle FCM messages here.
-        // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
-        Log.d(TAG, "From who: " + remoteMessage.getFrom());
-
-        // Check if message contains a data payload.
-        if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
-        }
-
-        // Check if message contains a notification payload.
-        if (remoteMessage.getNotification() != null) {
-            //sendNotification(remoteMessage.getNotification().getBody());
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
-        }
-
-        // Also if you intend on generating your own notifications as a result of a received FCM
-        // message, here is where that should be initiated. See sendNotification method below.
     }
 
-    private void handleDataMessage(JSONObject json) {
+    private void handleDataMessage(String title,JSONObject json) {
         Log.e(TAG, "push json: " + json.toString());
 
         try {
-            JSONObject data = json.getJSONObject("data");
+            String flag = json.getString("flag");
+            String senderid = json.getString("senderid");
 
-            String title = data.getString("title");
-            String message = data.getString("message");
-            String imageUrl = data.getString("image");
-            String sender = data.getString("sender");
-            String flag = data.getString("flag");
-            JSONObject payload = data.getJSONObject("payload");
-
-            Log.e(TAG, "title: " + title);
-            Log.e(TAG, "message: " + message);
-            Log.e(TAG, "payload: " + payload.toString());
-            Log.e(TAG, "imageUrl: " + imageUrl);
-            Log.d(TAG, "flag: " + flag);
+            // skip the message if the message belongs to same user as
+            // the user would be having the same message when he was sending
+            // but it might differs in your scenario
+           if (senderid.equals(mUID)) {return;} //checks if the message is from the same user
 
             switch (Integer.parseInt(flag)) {
                 case Constants.PUSH_TYPE_CHATROOM:
                     // push notification belongs to a chat room
-                    processChatRoomPush(title, data);
+                    processChatRoomPush(title, json);
                     break;
                 case Constants.PUSH_TYPE_USER:
                     // push notification is specific to user
-                    processUserMessage(title, data);
+                    processUserMessage(title, json);
                     break;
             }
         } catch (JSONException e) {
@@ -130,18 +102,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         try {
             String imageUrl = data.getString("image");
             String chatRoomId = data.getString("topicid");
-            String chatRoomName = data.getString("topicname");
-            String sender = data.getString("sender");
-            String pager = data.getString("viewpager");
-            String message = data.getString("message");
-
-            // skip the message if the message belongs to same user as
-            // the user would be having the same message when he was sending
-            // but it might differs in your scenario
-            if (sender.equals(mUsername)) {
-                Log.e(TAG, "Skipping the push message as it belongs to same user");
-                return;
-            }
+            String chatRoomName = unescapeSpace(data.getString("topicname"));
+            String sender = unescapeSpace(data.getString("sender"));
+            String pager = data.getString("pager");
+            String message = unescapeSpace(data.getString("message"));
 
             if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
                 // app is in foreground, broadcast the push message
@@ -169,10 +133,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     private void processUserMessage(String title, JSONObject data) {
         try {
             String imageUrl = data.getString("image");
-            String sender = data.getString("sender");
-            String senderrtoken = data.getString("sendertoken");
+            String sender = unescapeSpace(data.getString("sender"));
+            String sendertoken = data.getString("sendertoken");
             String senderid = data.getString("senderid");
-            String message = data.getString("message");
+            String message = unescapeSpace(data.getString("message"));
 
             if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
                 // app is in foreground, broadcast the push message
@@ -229,6 +193,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      * @param messageBody FCM message body received.
      */
     private void sendNotification(String title,String messageBody) {
+//        if ()
+
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,

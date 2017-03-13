@@ -207,7 +207,7 @@ public class UploadActivity_Topic extends Activity {
                         FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                         // [END subscribe_topics]
                         //send message to all the topic subscribers
-                        sendTopicNotification(escapeSpace(topicId), topicName,mUsername, downloadUri.toString(),"Topic","1","Picture maessage");
+                        sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername), mUID, downloadUri.toString(),"Topic","1",escapeSpace("Picture maessage"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -252,7 +252,7 @@ public class UploadActivity_Topic extends Activity {
                         FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                         // [END subscribe_topics]
                         //send message to all the topic subscribers
-                        sendTopicNotification(escapeSpace(topicId), topicName,mUsername, "none","Topic","1","Video message");
+                        sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername), mUID, "none","Topic","1",escapeSpace("Video message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
