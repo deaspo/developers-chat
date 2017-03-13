@@ -519,7 +519,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                 FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                 // [END subscribe_topics]
                 //send message to all the topic subscribers
-                sendTopicNotification(escapeSpace(topicId), topicName,mUsername, "none","Topic","1",emojiconEditText.getText().toString());
+                sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername), mUID, "none","Topic","1",escapeSpace(emojiconEditText.getText().toString()));
                 // clear the input box
                 emojiconEditText.setText("");
             }
@@ -728,7 +728,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                     // [END subscribe_topics]
                     //send message to all the topic subscribers
-                    sendTopicNotification(escapeSpace(topicId), topicName,mUsername, downloadUri.toString(),"Topic","1","Picture message");
+                    sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername),mUID, downloadUri.toString(),"Topic","1",escapeSpace("Picture message"));
                     forumspb.setVisibility(ProgressBar.GONE);
 
 

@@ -33,6 +33,7 @@ import java.util.Map;
 
 import adapter.Message;
 
+import static com.deaspostudios.devchats.MainActivity.escapeSpace;
 import static com.deaspostudios.devchats.MainActivity.mDeviceToken;
 import static com.deaspostudios.devchats.MainActivity.mUID;
 import static com.deaspostudios.devchats.MainActivity.mUsername;
@@ -216,7 +217,7 @@ public class UploadActivity_Chat extends Activity {
                         cDatabaseReference.updateChildren(childUpdates);
 
                         //Send notification
-                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,mUsername,"Picture message");
+                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,escapeSpace(mUsername),escapeSpace("Picture message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -268,7 +269,7 @@ public class UploadActivity_Chat extends Activity {
                         cDatabaseReference.updateChildren(childUpdates);
 
                         //Send notification
-                        sendChatNotification(mUID,mDeviceToken,"none","2",token,mUsername,"Video message");
+                        sendChatNotification(mUID,mDeviceToken,"none","2",token,escapeSpace(mUsername),escapeSpace("Video message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
