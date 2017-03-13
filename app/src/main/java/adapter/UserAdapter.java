@@ -43,6 +43,7 @@ public class UserAdapter extends ArrayAdapter<User> {
         TextView user_uid = (TextView) convertView.findViewById(R.id.user_uid);
         TextView user_status = (TextView) convertView.findViewById(R.id.user_status);
         ImageView user_ppic = (ImageView) convertView.findViewById(R.id.pprofile);
+        TextView devicetoken = (TextView) convertView.findViewById(R.id.device_token);
 
 
         User user = getItem(position);
@@ -52,10 +53,12 @@ public class UserAdapter extends ArrayAdapter<User> {
             user_name.setText("You");
             last_active.setText("Now");
             user_uid.setText("Just you");
+            devicetoken.setText("Your device");
         } else {
             user_name.setText(user.getName());
             last_active.setText("Last Active: " + user.getDate_joined());
             user_uid.setText(user.getUid());
+            devicetoken.setText(user.getDevicetoken());
         }
 
         /**

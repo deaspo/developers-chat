@@ -85,7 +85,7 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@id/aboutstatus"
                         android:layout_marginRight="10dp"
-                        android:text="Hey there am a developer"
+                        android:text="Tap to change"
                         android:textAlignment="textEnd"
                         android:textSize="12sp" />
 

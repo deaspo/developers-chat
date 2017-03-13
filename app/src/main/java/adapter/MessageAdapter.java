@@ -3,6 +3,7 @@ package adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Process;
 import android.text.Html;
@@ -13,13 +14,16 @@ import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.deaspostudios.devchats.AndroidUtilities;
 import com.deaspostudios.devchats.ImageActivity;
 import com.deaspostudios.devchats.R;
+import com.deaspostudios.devchats.VideoActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
@@ -65,7 +69,7 @@ public class MessageAdapter extends BaseAdapter {
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         View v = null;
-        Message message = chatMessage.get(i);
+        final Message message = chatMessage.get(i);
 
         final ViewHolder1 holder1;
         final ViewHolder2 holder2;
@@ -86,6 +90,7 @@ public class MessageAdapter extends BaseAdapter {
             holder1.messageTextView = (TextView) v.findViewById(R.id.textview_message2);
             holder1.timeTextView = (TextView) v.findViewById(R.id.textview_time2);
             holder1.photoView = (ImageView) v.findViewById(R.id.photoUser2);
+            holder1.videoView = (VideoView) v.findViewById(R.id.videouser2);
             holder1.messageStatus = (ImageView) v.findViewById(R.id.user_sent_status);
             holder1.photo_layout = (LinearLayout) v.findViewById(R.id.ppic);
             holder1.innerpb = (ProgressBar) v.findViewById(R.id.incomingpb);
@@ -116,21 +121,52 @@ public class MessageAdapter extends BaseAdapter {
                 }
             });
 
+            holder1.videoView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, VideoActivity.class);
+                    intent.putExtra("videourl",message.getVideoUrl());
+                    mContext.startActivity(intent);
+                }
+            });
+
             holder1.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             boolean isPhoto = message.getPhotoUrl() != null;
+            boolean isVideo = message.getVideoUrl() != null;
             if (isPhoto) {
                 holder1.innerpb.setVisibility(ProgressBar.VISIBLE);
                 holder1.messageTextView.setVisibility(View.GONE);
+                holder1.videoView.setVisibility(View.GONE);
                 holder1.photo_layout.setVisibility(View.VISIBLE);
                 holder1.photoView.setVisibility(View.VISIBLE);
                 Glide.with(holder1.photoView.getContext())
                         .load(message.getPhotoUrl())
                         .into(holder1.photoView);
                 holder1.innerpb.setVisibility(ProgressBar.GONE);
+            } else if (isVideo) {
+                holder1.innerpb.setVisibility(ProgressBar.VISIBLE);
+                holder1.messageTextView.setVisibility(View.GONE);
+                holder1.videoView.setVisibility(View.VISIBLE);
+                holder1.photo_layout.setVisibility(View.VISIBLE);
+                holder1.photoView.setVisibility(View.GONE);
+
+                holder1.videoView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        MediaController mc = new MediaController(mContext);
+                        mc.setAnchorView(holder1.videoView);
+                        mc.setMediaPlayer(holder1.videoView);
+                        holder1.videoView.setMediaController(mc);
+                        holder1.videoView.setVideoURI(Uri.parse(message.getVideoUrl()));
+                        holder1.videoView.start();
+                    }
+                });
+
             } else {
                 holder1.messageTextView.setVisibility(View.VISIBLE);
                 holder1.photo_layout.setVisibility(View.GONE);
                 holder1.photoView.setVisibility(View.GONE);
+                holder1.videoView.setVisibility(View.GONE);
                 holder1.messageTextView.setText(Html.fromHtml(Emoji.replaceEmoji(message.getText(),
                         holder1.messageTextView.getPaint().getFontMetricsInt(), AndroidUtilities.dp(16))
                         + " &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"));
@@ -154,6 +190,7 @@ public class MessageAdapter extends BaseAdapter {
             holder2.photoView = (ImageView) v.findViewById(R.id.photoView);
             holder2.senderName = (TextView) v.findViewById(R.id.other_user);
             holder2.photo = (LinearLayout) v.findViewById(R.id.photo);
+            holder2.videoView2 = (VideoView) v.findViewById(R.id.videouser);
             holder2.outerpb = (ProgressBar) v.findViewById(R.id.outgoingpb);
 
             v.setTag(holder2);
@@ -178,22 +215,53 @@ public class MessageAdapter extends BaseAdapter {
                 }
             });
 
+            holder2.videoView2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, VideoActivity.class);
+                    intent.putExtra("videourl",message.getVideoUrl());
+                    mContext.startActivity(intent);
+                }
+            });
+
             holder2.timeTextView.setText(DateFormat.getDateTimeInstance().format(new Date()));
             holder2.senderName.setText(message.getUserName());
             boolean isPhoto = message.getPhotoUrl() != null;
+            boolean isVideo = message.getVideoUrl() != null;
             if (isPhoto) {
                 holder2.outerpb.setVisibility(View.VISIBLE);
                 holder2.messageTextView.setVisibility(View.GONE);
+                holder2.videoView2.setVisibility(View.GONE);
                 holder2.photo.setVisibility(ProgressBar.VISIBLE);
                 holder2.photoView.setVisibility(View.VISIBLE);
                 Glide.with(holder2.photoView.getContext())
                         .load(message.getPhotoUrl())
                         .into(holder2.photoView);
                 holder2.outerpb.setVisibility(ProgressBar.GONE);
+            } else if (isVideo) {
+                holder2.outerpb.setVisibility(ProgressBar.VISIBLE);
+                holder2.messageTextView.setVisibility(View.GONE);
+                holder2.videoView2.setVisibility(View.VISIBLE);
+                holder2.photo.setVisibility(View.VISIBLE);
+                holder2.photoView.setVisibility(View.GONE);
+
+                holder2.videoView2.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        MediaController mc = new MediaController(mContext);
+                        mc.setAnchorView(holder2.videoView2);
+                        mc.setMediaPlayer(holder2.videoView2);
+                        holder2.videoView2.setMediaController(mc);
+                        holder2.videoView2.setVideoURI(Uri.parse(message.getVideoUrl()));
+                        holder2.videoView2.start();
+                    }
+                });
+
             } else {
                 holder2.messageTextView.setVisibility(View.VISIBLE);
                 holder2.photo.setVisibility(View.GONE);
                 holder2.photoView.setVisibility(View.GONE);
+                holder2.videoView2.setVisibility(View.GONE);
                 holder2.messageTextView.setText(Html.fromHtml(Emoji.replaceEmoji(message.getText(),
                         holder2.messageTextView.getPaint().getFontMetricsInt(), AndroidUtilities.dp(16))
                         + " &#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;"));
@@ -260,6 +328,7 @@ public class MessageAdapter extends BaseAdapter {
         public TextView messageTextView;
         public TextView timeTextView;
         public ImageView photoView;
+        public VideoView videoView;
         public LinearLayout photo_layout;
         public FrameLayout innerframre;
         public ProgressBar innerpb;
@@ -273,6 +342,7 @@ public class MessageAdapter extends BaseAdapter {
         public TextView messageTextView;
         public TextView timeTextView;
         public ImageView photoView;
+        public VideoView videoView2;
         public LinearLayout photo;
         public FrameLayout outerframre;
         public ProgressBar outerpb;

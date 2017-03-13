@@ -11,6 +11,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -18,14 +19,15 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,7 +54,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import adapter.Items_forums;
 import adapter.RecyclerAdapterGroup;
@@ -109,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private static final String urlNavHeaderBg = "http://api.androidhive.info/images/nav-menu-header-bg.jpg";
     public static int RC_Initial = 0;
     public static int pageItemIndex = 0;
-    public static String mUID, mStatus, mEncodedEmail, mUsername, mUserphoto, mUserEmail;
+    public static String mUID, mStatus, mEncodedEmail, mUsername, mUserphoto, mUserEmail, mDeviceToken;
     public static Boolean mVisible, mStatusVisble;
     public static DatabaseReference usersDbRef;
     public static ChildEventListener usersChildEventListener;
@@ -141,6 +145,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     private MenuItem searchMenuItem;
     private SearchView searchView;
     private View navHeader;
+
+    // toolbar titles respected to selected nav menu item
+    private String[] activityTitles;
+    // flag to load home fragment when user presses back key
+    private boolean shouldLoadHomeFragOnBackPress = true;
+    private Handler mHandler;
     /**
      * tab icons
      *
@@ -161,6 +171,12 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
      */
     private NavigationView navigationView;
     private DrawerLayout drawer;
+    /**
+     * Setup receive notifications
+     * @param savedInstanceState
+     */
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
+    private TextView txtMessage;
 
     public static void detachUsersListeners() {
         if (usersChildEventListener != null) {
@@ -178,15 +194,51 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     }
 
     public static String escapeSpace(String name) {
-        return name.replace(" ", "_");
+        return name.replace(" ", "<@>");
+    }
+    public static String unescapeSpace(String name) {return name.replace("<@>", " ");}
+
+    public static void sendTopicNotification(String topicid, String topicname,String sender, String senderid, String imageurl, String viewpager, String flag, String message) {
+        FirebaseDatabase topicsDb = FirebaseDatabase.getInstance();
+        final DatabaseReference topicsRef = topicsDb.getReference().child("topicsRequest");
+
+        Map notification = new HashMap<>();
+        notification.put("imageurl",imageurl);
+        notification.put("viewpager",viewpager);
+        notification.put("flag",flag);
+        notification.put("topicname", topicname);
+        notification.put("sender", sender);
+        notification.put("senderid",senderid);
+        notification.put("topicid", topicid);
+        notification.put("message", message);
+
+        topicsRef.push().setValue(notification);
     }
 
-    /**
-     * Setup receive notifications
-     * @param savedInstanceState
-     */
-    private BroadcastReceiver pushbroadcastReceiver,mRegistrationBroadcastReceiver;
-    private TextView txtMessage;
+    public static void sendChatNotification(String senderid,String sendertoken,String imageurl,String flag,String devicetoken,String sender, String message) {
+        FirebaseDatabase chatsdb = FirebaseDatabase.getInstance();
+        final DatabaseReference chatsref = chatsdb.getReference().child("chatsrequest");
+
+        Map notification = new HashMap<>();
+        notification.put("senderid",senderid);
+        notification.put("sendertoken",sendertoken);
+        notification.put("imageurl",imageurl);
+        notification.put("flag  ",flag);
+        notification.put("token",devicetoken);
+        notification.put("sender",sender);
+        notification.put("message",message);
+
+        chatsref.push().setValue(notification);
+    }
+
+    public static String userToken() {
+        /**
+         * extracts the user token
+         */
+        // Get token
+        String token = FirebaseInstanceId.getInstance().getToken();
+        return  token;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -246,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         //users
         usersDbRef = usersDb.getReference().child("users");
 
+
         /**
          * setting up  the chats viewer
          */
@@ -258,8 +311,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         navigationView = (NavigationView) findViewById(R.id.nav_view);
 
-        setUpNavigationView();
-
         // Navigation view header
         navHeader = navigationView.getHeaderView(0);
 
@@ -267,6 +318,13 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         imgNavHeaderBg = (ImageView) navHeader.findViewById(R.id.img_header_bg);
         username = (TextView) navHeader.findViewById(R.id.name);
         status = (TextView) navHeader.findViewById(R.id.status);
+
+        // load toolbar titles from string resources
+        activityTitles = getResources().getStringArray(R.array.nav_item_activity_titles);
+
+        setUpNavigationView();
+
+        mHandler = new Handler();
 
         //setting up the tabs
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -332,17 +390,75 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         this.registerReceiver(connection, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        userToken();
 
-        loadProfile();
-        pushbroadcastReceiver = new BroadcastReceiver() {
+    }
+
+    private void loadHomeFragment() {
+        // selecting appropriate nav menu item
+        selectNavMenu();
+
+        // set toolbar title
+        setToolbarTitle();
+
+        // if user select the current navigation menu again, don't do anything
+        // just close the navigation drawer
+        if (getSupportFragmentManager().findFragmentByTag(CURRENT_TAG) != null) {
+            drawer.closeDrawers();
+            return;
+        }
+
+        // Sometimes, when fragment has huge data, screen seems hanging
+        // when switching between navigation menus
+        // So using runnable, the fragment is loaded with cross fade effect
+        // This effect can be seen in GMail app
+        Runnable mPendingRunnable = new Runnable() {
             @Override
-            public void onReceive(Context context, Intent intent) {
-                String message = intent.getStringExtra("message");
-                String from = intent.getStringExtra("from");
-//                Log.i(TAG, "Receiving message: " + message + ", from " + from);
+            public void run() {
+                // update the main content by replacing fragments
+                Fragment fragment = getHomeFragment();
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(android.R.anim.fade_in,
+                        android.R.anim.fade_out);
+                fragmentTransaction.replace(R.id.frame, fragment, CURRENT_TAG);
+                fragmentTransaction.commitAllowingStateLoss();
             }
         };
+
+        // If mPendingRunnable is not null, then add to the message queue
+        /*if (mPendingRunnable != null) {
+            mHandler.post(mPendingRunnable);
+        }
+*/
+        //Closing drawer on item click
+        drawer.closeDrawers();
+    }
+
+    private void setToolbarTitle() {
+        getSupportActionBar().setTitle(activityTitles[navItemIndex]);
+    }
+
+    private void selectNavMenu() {
+        navigationView.getMenu().getItem(navItemIndex).setChecked(true);
+    }
+
+    private Fragment getHomeFragment() {
+        switch (navItemIndex) {
+            case 0:
+                group group = new group();
+                return group;
+            case 1:
+                topic topic = new topic();
+                return topic;
+            case 2:
+                fav fav = new fav();
+                return fav;
+            case 3:
+                user user = new user();
+                return user;
+            default:
+                return new group();
+
+        }
     }
 
     /**
@@ -394,9 +510,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                         startActivity(new Intent(MainActivity.this, AboutUs.class));
                         drawer.closeDrawers();
                         break;
+                    case R.id.nav_feedback:
+                        //launch feed send
+                        sendFeedback();
+                        drawer.closeDrawers();
+                        break;
                     default:
-                        CURRENT_TAG = TAG_CHAT;
-                        viewPager.setCurrentItem(navItemIndex, true);
+                        navItemIndex = 0;
+                        viewPager.setCurrentItem(0, true);
+                        drawer.closeDrawers();
                         break;
                 }
 
@@ -407,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                     menuItem.setChecked(true);
                 }
                 menuItem.setChecked(true);
-
+                loadHomeFragment();
                 return true;
             }
         });
@@ -433,6 +555,17 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         //calling sync state is necessary or else your hamburger icon wont show up
         actionBarDrawerToggle.syncState();
+    }
+
+    private void sendFeedback() {
+        Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+        emailIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        emailIntent.setType("vnd.android.cursor.item/email");
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] {"info@deaspostudios.com"});
+        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Your Feedback is Appreciated");
+        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "");
+        emailIntent.putExtra(Intent.EXTRA_HTML_TEXT, "<br> <p>Let us joing and help develop each other. It takes only a minute</p>");
+        startActivity(Intent.createChooser(emailIntent, "Send feedback using..."));
     }
 
     private void setupViewPager(ViewPager viewPager) {
@@ -505,6 +638,29 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     }
 
     @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawers();
+            return;
+        }
+
+        // This code loads home fragment when back key is pressed
+        // when user is in other fragment than home
+        if (shouldLoadHomeFragOnBackPress) {
+            // checking if user is on other navigation menu
+            // rather than home
+            if (navItemIndex != 0) {
+                navItemIndex = 0;
+                CURRENT_TAG = TAG_GROUP;
+                loadHomeFragment();
+                return;
+            }
+        }
+
+        super.onBackPressed();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         mFirebaseAuth.addAuthStateListener(mAuthStateListener);
@@ -519,38 +675,66 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
         // clear the notification area when the app is opened
         NotificationUtils.clearNotifications(getApplicationContext());
-        LocalBroadcastManager.getInstance(this).registerReceiver(pushbroadcastReceiver,
-                new IntentFilter("new-push-event"));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(pushbroadcastReceiver);
+        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+        if (mAuthStateListener != null) {
+            mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
+        }
+        if (mUsername != null && mUserEmail != null && mUID != null) {
+            removeUserName(mUsername, mUserEmail, mUID); *//* only carry out the action if there is an existing user *//*
+        }
+        *//**
+         * plan is to detach and clear all the listeners here
+         *//*
+        detachUserDatabaseListener();
+        onlineUsers.clear();
+        usersAdapter.notifyDataSetChanged();
+        *//* chat Db *//*
+        deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
+        *//* group Db *//*
+        detachGroupDatabaseListener();
+        groups.clear();
+        adapter.notifyDataSetChanged();
+        *//* Topic Db *//*
+        detachTopicDatabaseListener();
+        topics.clear();
+        topicsAdapter.notifyDataSetChanged();*/
+    }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
         if (mAuthStateListener != null) {
             mFirebaseAuth.removeAuthStateListener(mAuthStateListener);
         }
         if (mUsername != null && mUserEmail != null && mUID != null) {
             removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
         }
-
+        /**
+         * plan is to detach and clear all the listeners here
+         */
         detachUserDatabaseListener();
         onlineUsers.clear();
         usersAdapter.notifyDataSetChanged();
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mUsername != null && mUserEmail != null && mUID != null) {
-            removeUserName(mUsername, mUserEmail, mUID); /* only carry out the action if there is an existing user */
-        }
-        detachUserDatabaseListener();
-        onlineUsers.clear();
-        usersAdapter.notifyDataSetChanged();
+        /* chat Db */
+        deatchChatDb();
+        chattingUsers.clear();
+        chattingAdapter.notifyDataSetChanged();
+        /* group Db */
+        detachGroupDatabaseListener();
+        groups.clear();
+        adapter.notifyDataSetChanged();
+        /* Topic Db */
+        detachTopicDatabaseListener();
+        topics.clear();
+        topicsAdapter.notifyDataSetChanged();
     }
 
     private void OnSignedInialize(String username, String useremail, String uid) {
@@ -563,17 +747,23 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         /**
          * setting the preference values
          */
-
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         //mStatus = preferences.getString(MyPreferenceActivity.KEY_USER_STATUS, "");
         mUserphoto = userpreferences.getString("userpic", null);
-        mStatus = userpreferences.getString("userstatus", "Hey there am also a developer!");
+        if (mStatus == null) {
+            mStatus = userpreferences.getString("userstatus", "Hey there am also a developer!");
+        }
 
         if (mStatusVisble == null || mVisible == null) {
             mStatusVisble = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_STATUS_VISIBILITY, true));
             mVisible = Boolean.valueOf(preferences.getBoolean(MyPreferenceActivity.KEY_ONLINE_VISIBILITY, true));
         }
+        if (mDeviceToken == null) {
+            mDeviceToken = userToken();
+        }
         setDefaults();
+        loadDetailsDrawer();
+        loadProfile();
         addUser(username, useremail, uid);
         setUsername(mUsername, useremail, uid);
         //chats
@@ -655,7 +845,6 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         return true;
     }
 
-
     private void setViewPager() {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -667,16 +856,23 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
                 if (position == 0) {
                     pageItemIndex = 0;
                     invalidateOptionsMenu();
+                    navItemIndex = 0;
                 } else if (position == 1) {
                     pageItemIndex = 1;
                     invalidateOptionsMenu();
+                    navItemIndex = 1;
                 } else if (position == 2) {
                     pageItemIndex = 2;
                     invalidateOptionsMenu();
+                    navItemIndex = 2;
                 } else if (position == 3) {
                     pageItemIndex = 3;
                     invalidateOptionsMenu();
+                    navItemIndex = 3;
                 }
+                //set the toolbar titles
+                // set toolbar title
+                setToolbarTitle();
             }
 
             @Override
@@ -717,7 +913,7 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
 
     private void addUser(String mUsername, String mEncodedEmail, String uUid) {
         mUID = uUid;
-        User user = new User(mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
+        User user = new User(mDeviceToken,mUsername, mEncodedEmail, uUid, DateFormat.getDateTimeInstance().format(new Date()), mUserphoto, mStatus, mStatusVisble, mVisible);
         usersDbRef.child(uUid).setValue(user);
 
         /*chatsFirebaseDatabase =FirebaseDatabase.getInstance();
@@ -800,23 +996,14 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         adapter.notifyDataSetChanged();
     }
 
-    private void userToken() {
-        /**
-         * extracts the user token
-         */
-        // Get token
-        String token = FirebaseInstanceId.getInstance().getToken();
-
-        // Log and toast
-        Log.d("Token for Polycarp", token);
-        System.out.println("Token for Polycarp " + token);
-    }
-
-    public void loadProfile() {
+    private void loadDetailsDrawer() {
         //set the user name
         username.setText(mUsername);
         //set the ststus
         status.setText(mStatus);
+    }
+
+    public void loadProfile() {
         // Loading profile image
         if (mUserphoto == null) {
             Glide.with(this).using(new FirebaseImageLoader()).load(imageRef)
@@ -921,6 +1108,4 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
             }
         }
     }
-
-
 }

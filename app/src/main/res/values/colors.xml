@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#0765fc</color>
+    <color name="colorPrimaryDark">#0765fc</color>
     <color name="colorAccent">#FF4081</color>
 
 
@@ -21,4 +21,10 @@
     <color name="black">#616161</color>
 
     <color name="light_black">#747474</color>
+
+    <!-- Upload activity -->
+    <color name="view_background">#e8ecfa</color>
+    <color name="btn_bg">#277bec</color>
+    <color name="txt_font">#4e5572</color>
+
 </resources>
