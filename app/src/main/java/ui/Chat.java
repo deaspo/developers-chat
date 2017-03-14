@@ -187,14 +187,10 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
      * Checking device has camera hardware or not
      * */
     private boolean isDeviceSupportCamera() {
-        if (getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
+        // this device has a camera
+// no camera on this device
+        return getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA);
     }
 
     /**
@@ -516,7 +512,9 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
 
                 cDatabaseReference.updateChildren(childUpdates);
                 //Send notification
-                sendChatNotification(mUID,mDeviceToken,"none","2",token,escapeSpace(mUsername),escapeSpace(emojiconEditText.getText().toString()));
+                String imageurl = "none";
+                String flag = "2";
+                sendChatNotification(mUID, mDeviceToken, imageurl, flag, token, mUsername, emojiconEditText.getText().toString());
 
                 //clear the input box
                 emojiconEditText.setText("");
@@ -641,7 +639,9 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
                         cDatabaseReference.updateChildren(childUpdates);
 
                         //Send notification
-                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,escapeSpace(mUsername),escapeSpace("Picture message"));
+                        String imageurl = downloadUri.toString();
+                        String flag = "2";
+                        sendChatNotification(mUID, mDeviceToken, imageurl, flag, token, escapeSpace(mUsername), escapeSpace("Picture message"));
                         chatspb.setVisibility(ProgressBar.GONE);
 
                     }

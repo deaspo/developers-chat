@@ -196,7 +196,10 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     public static String escapeSpace(String name) {
         return name.replace(" ", "<@>");
     }
-    public static String unescapeSpace(String name) {return name.replace("<@>", " ");}
+
+    public static String unescapeSpace(String name) {
+        return name.replaceAll("<@>", " ");
+    }
 
     public static void sendTopicNotification(String topicid, String topicname,String sender, String senderid, String imageurl, String viewpager, String flag, String message) {
         FirebaseDatabase topicsDb = FirebaseDatabase.getInstance();
@@ -215,15 +218,15 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
         topicsRef.push().setValue(notification);
     }
 
-    public static void sendChatNotification(String senderid,String sendertoken,String imageurl,String flag,String devicetoken,String sender, String message) {
+    public static void sendChatNotification(String senderid, String sendertoken, String imageurl, String flags, String devicetoken, String sender, String message) {
         FirebaseDatabase chatsdb = FirebaseDatabase.getInstance();
-        final DatabaseReference chatsref = chatsdb.getReference().child("chatsrequest");
+        final DatabaseReference chatsref = chatsdb.getReference().child("chatsRequest");
 
         Map notification = new HashMap<>();
         notification.put("senderid",senderid);
         notification.put("sendertoken",sendertoken);
         notification.put("imageurl",imageurl);
-        notification.put("flag  ",flag);
+        notification.put("flag", flags);
         notification.put("token",devicetoken);
         notification.put("sender",sender);
         notification.put("message",message);
