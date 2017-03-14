@@ -95,7 +95,6 @@ public class NotificationUtils {
         if (TextUtils.isEmpty(message))
             return;
 
-
         // notification icon
         final int icon = R.drawable.ic_notifications_black_24dp;
 

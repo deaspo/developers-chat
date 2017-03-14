@@ -55,6 +55,7 @@ public class UploadActivity_Group extends Activity {
     private String filePath = null;
     private String groupId = null;
     private String groupname = null;
+    private String userMail = null;
     private Uri fileUri = null;
     private TextView txtPercentage;
     private GestureImageView imgPreview;
@@ -90,6 +91,12 @@ public class UploadActivity_Group extends Activity {
         groupname = i.getStringExtra("groupname");
         currentForumRef = gDatabaseReference.child(groupId);
         currentForumMessages = currentForumRef.child("messages");
+
+        /**
+         * forum owner email
+         */
+
+        userMail = i.getStringExtra("userMail");
 
 
         if (filePath != null) {
@@ -208,7 +215,7 @@ public class UploadActivity_Group extends Activity {
                         FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
                         // [END subscribe_topics]
                         //send message to all the topic subscribers
-                        sendTopicNotification(escapeSpace(groupId), escapeSpace(groupname),escapeSpace(mUsername), mUID,downloadUri.toString(),"Group","1",escapeSpace("Picture message"));
+                        sendTopicNotification(escapeSpace(groupId), escapeSpace(groupname), escapeSpace(mUsername), mUID, userMail, downloadUri.toString(), "Group", "1", escapeSpace("Picture message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -253,7 +260,7 @@ public class UploadActivity_Group extends Activity {
                         FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(groupId));
                         // [END subscribe_topics]
                         //send message to all the topic subscribers
-                        sendTopicNotification(escapeSpace(groupId), escapeSpace(groupname),escapeSpace(mUsername), mUID,"none","Group","1",escapeSpace("Video message"));
+                        sendTopicNotification(escapeSpace(groupId), escapeSpace(groupname), escapeSpace(mUsername), mUID, userMail, "none", "Group", "1", escapeSpace("Video message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);

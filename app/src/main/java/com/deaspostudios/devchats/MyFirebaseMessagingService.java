@@ -27,17 +27,18 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Map;
 
-import static com.deaspostudios.devchats.MainActivity.mUID;
+import ui.Chat;
+import ui.GroupActivity;
+import ui.TopicActivity;
+
 import static com.deaspostudios.devchats.MainActivity.unescapeSpace;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
@@ -57,8 +58,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         //check if message contain notification and data payload  //messages coming from the app
         if (remoteMessage.getNotification() != null && remoteMessage.getData().size() > 0) {
             try {
-                JSONObject json = new JSONObject(remoteMessage.getData().toString());
-                handleDataMessage(remoteMessage.getNotification().getTitle(),json);
+                handleDataMessage(remoteMessage.getNotification().getTitle(), remoteMessage.getData());
             } catch (Exception e) {
                 Log.e(TAG, "Exception: " + e.getMessage());
             }
@@ -68,103 +68,92 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void handleDataMessage(String title,JSONObject json) {
-        Log.e(TAG, "push json: " + json.toString());
+    private void handleDataMessage(String title, Map<String, String> data) {
+        Log.e(TAG, "push json: " + data.toString());
 
         try {
-            String flag = json.getString("flag");
-            String senderid = json.getString("senderid");
+            String flag = data.get("flag");
+            String senderid = data.get("senderid");
 
             // skip the message if the message belongs to same user as
             // the user would be having the same message when he was sending
             // but it might differs in your scenario
-           if (senderid.equals(mUID)) {return;} //checks if the message is from the same user
-
+//           if (senderid.equals(mUID)) {return;} //checks if the message is from the same user
+//
             switch (Integer.parseInt(flag)) {
                 case Constants.PUSH_TYPE_CHATROOM:
                     // push notification belongs to a chat room
-                    processChatRoomPush(title, json);
+                    processChatRoomPush(title, data);
                     break;
                 case Constants.PUSH_TYPE_USER:
                     // push notification is specific to user
-                    processUserMessage(title, json);
+                    processUserMessage(title, data);
                     break;
             }
-        } catch (JSONException e) {
-            Log.e(TAG, "Json Exception: " + e.getMessage());
         } catch (Exception e) {
             Log.e(TAG, "Exception: " + e.getMessage());
         }
 
     }
 
-    private void processChatRoomPush(String title, JSONObject data) {
+    private void processChatRoomPush(String title, Map<String, String> data) {
         try {
-            String imageUrl = data.getString("image");
-            String chatRoomId = data.getString("topicid");
-            String chatRoomName = unescapeSpace(data.getString("topicname"));
-            String sender = unescapeSpace(data.getString("sender"));
-            String pager = data.getString("pager");
-            String message = unescapeSpace(data.getString("message"));
+            String imageUrl = data.get("image");
+            String chatRoomId = data.get("topicid");
+            String chatRoomName = unescapeSpace(data.get("topicname"));
+            String sender = unescapeSpace(data.get("sender"));
+            String pager = data.get("pager");
+            String message = unescapeSpace(data.get("message"));
+            String usermail = data.get("usermail");
 
-            if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
-                // app is in foreground, broadcast the push message
-                Intent pushNotification = new Intent(Constants.PUSH_NOTIFICATION);
-                pushNotification.putExtra("type", Constants.PUSH_TYPE_CHATROOM);
-                pushNotification.putExtra("message",message);
-
-                LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
-
-                // play notification sound
-                NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
-                notificationUtils.playNotificationSound();
-            } else {
-                // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
-                resultIntent.putExtra("chat_room_id", chatRoomId);
-                showNotificationMessage(getApplicationContext(), title, sender + " : " + message, resultIntent);
+            /**
+             * set the notification intentt
+             * resultintent
+             */
+            Class<?> activityClass = null;
+            if (pager.equals("Group")) {
+                activityClass = GroupActivity.class;
+            } else if (pager.equals("Topic")) {
+                activityClass = TopicActivity.class;
             }
-        } catch (JSONException e) {
-            Log.e(TAG, "json parsing error: " + e.getMessage());
+
+            Intent pendingIntent = new Intent(getApplicationContext(), activityClass);
+            pendingIntent.putExtra("forumKey", chatRoomId);
+            pendingIntent.putExtra("forumName", chatRoomName);
+            pendingIntent.putExtra("usermail", usermail);
+            showNotificationMessage(getApplicationContext(), title, sender + " : " + message, pendingIntent);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Parsing error: " + e.getMessage());
             Toast.makeText(getApplicationContext(), "Json parse error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
-    private void processUserMessage(String title, JSONObject data) {
+    private void processUserMessage(String title, Map<String, String> data) {
         try {
-            String imageUrl = data.getString("image");
-            String sender = unescapeSpace(data.getString("sender"));
-            String sendertoken = data.getString("sendertoken");
-            String senderid = data.getString("senderid");
-            String message = unescapeSpace(data.getString("message"));
+            String imageUrl = data.get("image");
+            String sender = unescapeSpace(data.get("sender"));
+            String sendertoken = data.get("sendertoken");
+            String senderid = data.get("senderid");
+            String message = unescapeSpace(data.get("message"));
 
-            if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
-                // app is in foreground, broadcast the push message
-                Intent pushNotification = new Intent(Constants.PUSH_NOTIFICATION);
-                pushNotification.putExtra("type", Constants.PUSH_TYPE_USER);
-                pushNotification.putExtra("message",message);
+            Intent resultIntent = new Intent(getApplicationContext(), Chat.class);
+            resultIntent.putExtra("username", sender);
+            resultIntent.putExtra("userid", senderid);
+            resultIntent.putExtra("token", sendertoken);
 
-                LocalBroadcastManager.getInstance(this).sendBroadcast(pushNotification);
-
-                // play notification sound
-                NotificationUtils notificationUtils = new NotificationUtils(getApplicationContext());
-                notificationUtils.playNotificationSound();
+            // check for push notification image attachment
+            if (imageUrl.equals("none")) {
+                showNotificationMessage(getApplicationContext(), title, sender + " : " + message, resultIntent);
             } else {
-                // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
-
-                // check for push notification image attachment
-                if (imageUrl.equals("none")) {
-                    showNotificationMessage(getApplicationContext(), title, sender + " : " + message, resultIntent);
-                } else {
-                    // push notification contains image
-                    // show it with the image
-                    showNotificationMessageWithBigImage(getApplicationContext(), title, message, resultIntent, imageUrl);
-                }
+                // push notification contains image
+                // show it with the image
+                showNotificationMessageWithBigImage(getApplicationContext(), title, message, resultIntent, imageUrl);
             }
-        } catch (JSONException e) {
-            Log.e(TAG, "json parsing error: " + e.getMessage());
-            Toast.makeText(getApplicationContext(), "Json parse error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+
+        } catch (Exception e) {
+            Log.e(TAG, "Parsing error: " + e.getMessage());
+            Toast.makeText(getApplicationContext(), "Parse error: " + e.getMessage(), Toast.LENGTH_LONG).show();
 
         }
     }

@@ -194,18 +194,19 @@ public class MainActivity extends AppCompatActivity implements fav.OnFragmentInt
     }
 
     public static String escapeSpace(String name) {
-        return name.replace(" ", "<@>");
+        return name.replace("", "");
     }
 
     public static String unescapeSpace(String name) {
-        return name.replaceAll("<@>", " ");
+        return name.replace("", "");
     }
 
-    public static void sendTopicNotification(String topicid, String topicname,String sender, String senderid, String imageurl, String viewpager, String flag, String message) {
+    public static void sendTopicNotification(String topicid, String topicname, String sender, String senderid, String ownermail, String imageurl, String viewpager, String flag, String message) {
         FirebaseDatabase topicsDb = FirebaseDatabase.getInstance();
         final DatabaseReference topicsRef = topicsDb.getReference().child("topicsRequest");
 
         Map notification = new HashMap<>();
+        notification.put("usermail", ownermail);
         notification.put("imageurl",imageurl);
         notification.put("viewpager",viewpager);
         notification.put("flag",flag);

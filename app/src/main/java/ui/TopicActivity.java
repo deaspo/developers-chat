@@ -156,8 +156,6 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
 
     /**
      * Launching app to capture photo
-     * @param items_forums
-     * @param currentUserEmail
      * @return
      */
 
@@ -218,14 +216,10 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
      * Checking device has camera hardware or not
      * */
     private boolean isDeviceSupportCamera() {
-        if (getApplicationContext().getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            return true;
-        } else {
-            // no camera on this device
-            return false;
-        }
+        // this device has a camera
+// no camera on this device
+        return getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA);
     }
 
     /**
@@ -311,6 +305,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
         i.putExtra("isImage", isImage);
         i.putExtra("topicid", topicId);
         i.putExtra("topicname", topicName);
+        i.putExtra("userMail", userMail);
         startActivity(i);
     }
 
@@ -519,7 +514,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                 FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                 // [END subscribe_topics]
                 //send message to all the topic subscribers
-                sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername), mUID, "none","Topic","1",escapeSpace(emojiconEditText.getText().toString()));
+                sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName), escapeSpace(mUsername), mUID, userMail, "none", "Topic", "1", escapeSpace(emojiconEditText.getText().toString()));
                 // clear the input box
                 emojiconEditText.setText("");
             }
@@ -728,7 +723,7 @@ public class TopicActivity extends AppCompatActivity implements SwipeRefreshLayo
                     FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                     // [END subscribe_topics]
                     //send message to all the topic subscribers
-                    sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername),mUID, downloadUri.toString(),"Topic","1",escapeSpace("Picture message"));
+                    sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName), escapeSpace(mUsername), mUID, userMail, downloadUri.toString(), "Topic", "1", escapeSpace("Picture message"));
                     forumspb.setVisibility(ProgressBar.GONE);
 
 

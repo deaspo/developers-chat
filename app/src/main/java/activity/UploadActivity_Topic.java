@@ -54,6 +54,7 @@ public class UploadActivity_Topic extends Activity {
     private String filePath = null;
     private String topicId = null;
     private String topicName;
+    private String userMail = null;
     private Uri fileUri = null;
     private TextView txtPercentage;
     private GestureImageView imgPreview;
@@ -89,6 +90,11 @@ public class UploadActivity_Topic extends Activity {
         topicName = i.getStringExtra("topicname");
         currentForumRef = tDatabaseReference.child(topicId);
         currentForumMessages = currentForumRef.child("messages");
+
+        /**
+         * get the topic creator
+         */
+        i.getStringExtra("userMail");
 
 
         if (filePath != null) {
@@ -207,7 +213,7 @@ public class UploadActivity_Topic extends Activity {
                         FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                         // [END subscribe_topics]
                         //send message to all the topic subscribers
-                        sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername), mUID, downloadUri.toString(),"Topic","1",escapeSpace("Picture maessage"));
+                        sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName), escapeSpace(mUsername), mUID, userMail, downloadUri.toString(), "Topic", "1", escapeSpace("Picture maessage"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -252,7 +258,7 @@ public class UploadActivity_Topic extends Activity {
                         FirebaseMessaging.getInstance().subscribeToTopic(escapeSpace(topicId));
                         // [END subscribe_topics]
                         //send message to all the topic subscribers
-                        sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName),escapeSpace(mUsername), mUID, "none","Topic","1",escapeSpace("Video message"));
+                        sendTopicNotification(escapeSpace(topicId), escapeSpace(topicName), escapeSpace(mUsername), mUID, userMail, "none", "Topic", "1", escapeSpace("Video message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
