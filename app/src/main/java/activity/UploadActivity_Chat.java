@@ -217,7 +217,9 @@ public class UploadActivity_Chat extends Activity {
                         cDatabaseReference.updateChildren(childUpdates);
 
                         //Send notification
-                        sendChatNotification(mUID,mDeviceToken,downloadUri.toString(),"2",token,escapeSpace(mUsername),escapeSpace("Picture message"));
+                        String imageurl = downloadUri.toString();
+                        String flag = "2";
+                        sendChatNotification(mUID, mDeviceToken, imageurl, flag, token, escapeSpace(mUsername), escapeSpace("Picture message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
@@ -269,7 +271,9 @@ public class UploadActivity_Chat extends Activity {
                         cDatabaseReference.updateChildren(childUpdates);
 
                         //Send notification
-                        sendChatNotification(mUID,mDeviceToken,"none","2",token,escapeSpace(mUsername),escapeSpace("Video message"));
+                        String imageurl = "none";
+                        String flag = "2";
+                        sendChatNotification(mUID, mDeviceToken, imageurl, flag, token, escapeSpace(mUsername), escapeSpace("Video message"));
 
                         // updating
                         progressBar.setVisibility(View.GONE);
