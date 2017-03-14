@@ -515,7 +515,7 @@ public class Chat extends AppCompatActivity implements SwipeRefreshLayout.OnRefr
                 //Send notification
                 String imageurl = "none";
                 String flag = "2";
-                sendChatNotification(mUID, mDeviceToken, imageurl, flag, token, unescapeSpace(mUsername), unescapeSpace(emojiconEditText.getText().toString()));
+                sendChatNotification(mUID, mDeviceToken, imageurl, flag, token, escapeSpace(mUsername), escapeSpace(emojiconEditText.getText().toString()));
 
                 //clear the input box
                 emojiconEditText.setText("");
